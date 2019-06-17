@@ -12,12 +12,22 @@ export default new Router({
             component: Home,
         },
         {
-            path: '/note-drawn',
-            name: 'note-drawn',
-            // route level code-splitting
-            // this generates a separate chunk (about.[hash].js) for this route
-            // which is lazy-loaded when the route is visited.
-            component: () => import(/* webpackChunkName: "note-drawn" */ './views/NoteDrawn.vue'),
+            path: '/notes',
+            name: 'notes',
+            component: () => import(/* webpackChunkName: "page-notes" */ './views/Notes.vue'),
         },
+        {
+            path: '/notes/drawn',
+            name: 'note-drawn',
+            component: () => import(/* webpackChunkName: "page-note-drawn" */ './views/NoteDrawn.vue'),
+        },
+        // {
+        //     path: '/note-drawn',
+        //     name: 'note-drawn',
+        //     // route level code-splitting
+        //     // this generates a separate chunk (about.[hash].js) for this route
+        //     // which is lazy-loaded when the route is visited.
+        //     component: () => import(/* webpackChunkName: "note-drawn" */ './views/NoteDrawn.vue'),
+        // },
     ],
 });

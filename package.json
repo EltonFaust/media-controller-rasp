@@ -14,6 +14,7 @@
     "bootstrap-vue": "^2.0.0-rc.23",
     "canvas-free-drawing": "^2.0.4",
     "core-js": "^2.6.5",
+    "material-design-icons-iconfont": "^5.0.1",
     "vue": "^2.6.10",
     "vue-router": "^3.0.3"
   },
