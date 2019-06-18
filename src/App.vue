@@ -10,11 +10,13 @@ $body-color: #fff;
 
 @import 'node_modules/bootstrap/scss/bootstrap';
 @import 'node_modules/bootstrap-vue/src/index.scss';
-@import 'node_modules/bootstrap/scss/variables';
 
 .material-icons {
     font-size: inherit !important;
     // line-height: $line-height-base !important;
+}
+.btn .material-icons {
+    vertical-align: middle;
 }
 
 html, body, #app {

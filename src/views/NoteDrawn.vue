@@ -1,40 +1,46 @@
 <template>
     <div class="note-drawn">
-        <b-container fluid class="drawning-area" id="note-drawning"></b-container>
+        <div class="drawning-area" id="note-drawning"></div>
+        <!-- <b-container fluid class="drawning-area" id="note-drawning"></b-container> -->
         <b-container fluid class="drawn-options border-top border-secondary">
-            <b-row>
-                <b-col class="line-options d-flex text-center">
-                    <div class="line-colors" style="flex: 1;display: flex;align-items: center;">
-                        <div style="flex: 1;">
-                            <div v-for="(colorItem, colorName) of colors"
-                                style="padding: 0 2px; display: inline-block;vertical-align:middle;">
-                                <div @click="selectColor(colorName)" style="height: 15px;width: 15px;"
-                                    v-bind:style="{'background-color': `rgb(${colorItem.join(', ')})`}">
-                                </div>
+            <div class="line-options text-center">
+                <div class="line-colors">
+                    <div class="colors-container">
+                        <div v-for="(colorItem, colorName) of colors" :key="colorName" class="color-item">
+                            <div @click="selectColor(colorName)" class="color-select"
+                                v-bind:style="{'background-color': `rgb(${colorItem.join(', ')})`}">
                             </div>
                         </div>
                     </div>
-                    <div class="line-size d-flex" style="align-items: center;">
-                        <div @click="decrementSize" style="padding: 0 7px; font-size: 1.2rem;">-</div>
-                        <div style="flex: 1;">{{ size }}px</div>
-                        <div @click="incrementSize" style="padding: 0 7px; font-size: 1.2rem;">+</div>
-                    </div>
-                </b-col>
-                <b-col class="d-flex text-right" style="align-items: center;">
-                    <div style="flex: 1;">
-                        <b-button @click="discardChanges" variant="warning" size="sm">
-                            <!-- <i class="material-icons">save</i> -->
-                            Discard
-                        </b-button>&nbsp;
-                        <b-button variant="success" size="sm">Save</b-button>
-                    </div>
-                </b-col>
-            </b-row>
+                </div>
+                <div class="line-size d-flex">
+                    <div @click="decrementSize" class="size-ajust">-</div>
+                    <div class="size-value">{{ size }}px</div>
+                    <div @click="incrementSize" class="size-ajust">+</div>
+                </div>
+            </div>
+            <div class="actions text-right">
+                <div style="flex: 1;">
+                    <b-button @click="undo" variant="light" size="sm">
+                        <i class="material-icons">undo</i>
+                    </b-button>
+                    &nbsp;
+                    <b-button @click="discardChanges" variant="warning" size="sm">
+                        Discard
+                    </b-button>
+                    &nbsp;
+                    <b-button @click="save" variant="success" size="sm">Save</b-button>
+                </div>
+            </div>
         </b-container>
     </div>
 </template>
 
 <style lang="scss">
+    @import '~bootstrap/scss/functions';
+    @import '~bootstrap/scss/variables';
+    @import '~bootstrap/scss/mixins';
+
     .note-drawn {
         display: flex;
         flex-direction: column;
@@ -50,11 +56,53 @@
         }
 
         .drawn-options {
-            padding-top: 5px;
-            padding-bottom: 5px;
+            display: flex;
+            padding: 5px 0;
+            margin: 0 -($grid-gutter-width / 2)px;
 
             .line-options {
+                padding: 0 ($grid-gutter-width / 2);
+                display: flex;
+                flex: 1;
 
+                .line-colors {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+
+                    .colors-container {
+                        flex: 1;
+
+                        .color-item {
+                            padding: 0 2px;
+                            display: inline-block;
+                            vertical-align:middle;
+
+                            .color-select {
+                                height: 20px;
+                                width: 20px;
+                            }
+                        }
+                    }
+                }
+
+                .line-size {
+                    align-items: center;
+
+                    .size-ajust {
+                        padding: 0 7px;
+                        font-size: 1.2rem;
+                    }
+
+                    .size-value {
+                        flex: 1;
+                        width: 35px;
+                    }
+                }
+            }
+            .actions {
+                padding: 0 ($grid-gutter-width / 2);
+                align-items: center;
             }
         }
     }
@@ -68,15 +116,13 @@ export default {
     data() {
         return {
             drawn: null,
-            size: 5,
+            size: 3,
             color: 'light',
             colors: {
                 light: [248, 249, 250],
-                dark: [52, 58, 64],
                 primary: [0, 123, 255],
                 secondary: [108, 117, 125],
                 success: [40, 167, 69],
-                info: [23, 162, 184],
                 warning: [255, 193, 7],
                 danger: [220, 53, 69],
             },
@@ -89,11 +135,13 @@ export default {
             elementId: 'note-drawning',
             width: el.offsetWidth,
             height: el.offsetHeight - 5,
+            backgroundColor: [0, 0, 0],
         });
 
         this.drawn.setLineWidth(this.size);
-        this.drawn.setBackground([0, 0, 0]);
         this.drawn.setStrokeColor(this.colors[this.color]);
+
+        // this.drawn.restore()
     },
     methods: {
         selectColor(colorName) {
@@ -110,21 +158,29 @@ export default {
                 this.drawn.setLineWidth(this.size);
             }
         },
-        discardChanges () {
-            window.history.length > 1
-                ? this.$router.go(-1)
-                : this.$router.push('/')
+        undo() {
+            this.drawn.undo();
         },
-
-        clk() {
+        discardChanges() {
+            if (window.history.length > 1) {
+                this.$router.go(-1);
+            } else {
+                this.$router.push('/');
+            }
+        },
+        save() {
             // window.test();
-            alert(window.ipcRenderer.sendSync('synchronous-message', 'ping'));
+            // console.log(window.ipcRenderer.sendSync('synchronous-message', 'ping'));
 
-            window.ipcRenderer.on('asynchronous-reply', (event, arg) => {
-                alert(arg);
+            // window.ipcRenderer.on('drawn-save-reply', (event, arg) => {
+            //     this.discardChanges();
+            // });
+
+            window.ipcRenderer.on('drawn-save-reply', () => {
+                this.discardChanges();
             });
 
-            window.ipcRenderer.send('asynchronous-message', 'ping');
+            window.ipcRenderer.send('drawn-save', { content: this.drawn.save() });
         },
     },
 };
