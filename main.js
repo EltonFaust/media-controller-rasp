@@ -1,6 +1,18 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
+const path   = require('path');
+const fs     = require('fs');
+const sqlite = require('sqlite');
+const md5    = require('md5');
+
+let db = null;
+
+async function main() {
+    db = await sqlite.open(path.resolve('.', 'data', 'db.sqlite'), { Promise });
+    await sqlite.migrate();
+}
+
+main();
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -20,10 +32,11 @@ function createWindow () {
     });
 
     // and load the index.html of the app.
-    mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+    mainWindow.loadURL('http://192.168.0.13:8080');
+    // mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
 
     // Open the DevTools.
-    // mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
@@ -55,8 +68,45 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
+ipcMain.on('list-drawns', (event) => {
+    new Promise((resolve, reject) => {
+        db.all('SELECT * FROM note').then(resolve).catch(reject);
+    }).then((list) => {
+        event.reply('list-drawns-reply', list);
+    }).catch(e => console.log);
+});
+
 ipcMain.on('drawn-save', (event, arg) => {
-    //
+    new Promise((resolve, reject) => {
+        const updated = new Date().toISOString();
+
+        if (!arg.id) {
+            const filePath = `${md5(`${updated}>>${arg.content}`)}.png`;
+
+            fs.writeFileSync(
+                path.resolve('.', 'data', 'note', filePath),
+                arg.content.replace(/.*;base64,/, ''),
+                { encoding: 'base64' }
+            );
+
+            db.run(
+                'INSERT INTO note(title, path, created, updated) VALUES(?, ?, ?, ?)',
+                updated.substr(0, 19).replace(/T/, ' '), filePath, updated, updated
+            ).then((stmt) => {
+                resolve(stmt.lastID);
+            }).catch(reject);
+        } else {
+            db.run(
+                'UPDATE note SET updated = ? WHERE id = ?',
+                updated,
+                arg.id
+            ).then(() => {
+                resolve(arg.id);
+            }).catch(reject);
+        }
+    }).then((id) => {
+        event.reply('drawn-save-reply', id);
+    }).catch(e => console.log);
 });
 
 // ipcMain.on('asynchronous-message', (event, arg) => {

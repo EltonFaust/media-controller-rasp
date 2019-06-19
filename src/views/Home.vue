@@ -67,7 +67,7 @@ export default {
         {
             actions: [
                 { to: { name: 'note-drawn' }, label: 'Nota' },
-                { to: { name: 'note-drawn' }, label: 'Nota' },
+                { to: { name: 'notes' }, label: 'Notas' },
                 { to: { name: 'note-drawn' }, label: 'Nota' },
                 { to: { name: 'note-drawn' }, label: 'Nota' },
                 { to: { name: 'note-drawn' }, label: 'Nota' },

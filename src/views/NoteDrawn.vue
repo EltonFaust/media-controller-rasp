@@ -21,15 +21,15 @@
             </div>
             <div class="actions text-right">
                 <div style="flex: 1;">
-                    <b-button @click="undo" variant="light" size="sm">
+                    <b-button @click="undo" :disable="buttonBlock" variant="light" size="sm">
                         <i class="material-icons">undo</i>
                     </b-button>
                     &nbsp;
-                    <b-button @click="discardChanges" variant="warning" size="sm">
+                    <b-button @click="discardChanges" :disable="buttonBlock" variant="warning" size="sm">
                         Discard
                     </b-button>
                     &nbsp;
-                    <b-button @click="save" variant="success" size="sm">Save</b-button>
+                    <b-button @click="save" :disable="buttonBlock" variant="success" size="sm">Save</b-button>
                 </div>
             </div>
         </b-container>
@@ -126,6 +126,7 @@ export default {
                 warning: [255, 193, 7],
                 danger: [220, 53, 69],
             },
+            buttonBlock: false,
         };
     },
     mounted() {
@@ -175,6 +176,8 @@ export default {
             // window.ipcRenderer.on('drawn-save-reply', (event, arg) => {
             //     this.discardChanges();
             // });
+
+            this.buttonBlock = true;
 
             window.ipcRenderer.on('drawn-save-reply', () => {
                 this.discardChanges();
