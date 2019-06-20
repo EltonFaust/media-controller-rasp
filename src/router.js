@@ -21,6 +21,11 @@ export default new Router({
             name: 'note-drawn',
             component: () => import(/* webpackChunkName: "page-note-drawn" */ './views/NoteDrawn.vue'),
         },
+        {
+            path: '/notes/drawn/:id',
+            name: 'note-edit-drawn',
+            component: () => import(/* webpackChunkName: "page-note-drawn" */ './views/NoteDrawn.vue'),
+        },
         // {
         //     path: '/note-drawn',
         //     name: 'note-drawn',

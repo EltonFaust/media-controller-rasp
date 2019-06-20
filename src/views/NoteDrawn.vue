@@ -142,6 +142,11 @@ export default {
         this.drawn.setLineWidth(this.size);
         this.drawn.setStrokeColor(this.colors[this.color]);
 
+        const { id } = this.$route.params;
+
+        if (id) {
+            console.log(id);
+        }
         // this.drawn.restore()
     },
     methods: {
@@ -179,11 +184,11 @@ export default {
 
             this.buttonBlock = true;
 
-            window.ipcRenderer.on('drawn-save-reply', () => {
+            window.ipcRenderer.once('note-drawn-save-reply', () => {
                 this.discardChanges();
             });
 
-            window.ipcRenderer.send('drawn-save', { content: this.drawn.save() });
+            window.ipcRenderer.send('note-drawn-save', { id: this.$route.params.id, content: this.drawn.save() });
         },
     },
 };

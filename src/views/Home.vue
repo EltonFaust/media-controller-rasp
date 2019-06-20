@@ -66,12 +66,12 @@ export default {
     data: () => (
         {
             actions: [
-                { to: { name: 'note-drawn' }, label: 'Nota' },
-                { to: { name: 'notes' }, label: 'Notas' },
-                { to: { name: 'note-drawn' }, label: 'Nota' },
-                { to: { name: 'note-drawn' }, label: 'Nota' },
-                { to: { name: 'note-drawn' }, label: 'Nota' },
-                { to: { name: 'note-drawn' }, label: 'Nota' },
+                { to: { name: 'note-drawn' }, label: 'Note' },
+                { to: { name: 'notes' }, label: 'Notes' },
+                { to: { name: 'note-drawn' }, label: 'Note' },
+                { to: { name: 'note-drawn' }, label: 'Note' },
+                { to: { name: 'note-drawn' }, label: 'Note' },
+                { to: { name: 'note-drawn' }, label: 'Note' },
             ],
         }
     ),

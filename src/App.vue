@@ -11,14 +11,6 @@ $body-color: #fff;
 @import 'node_modules/bootstrap/scss/bootstrap';
 @import 'node_modules/bootstrap-vue/src/index.scss';
 
-.material-icons {
-    font-size: inherit !important;
-    // line-height: $line-height-base !important;
-}
-.btn .material-icons {
-    vertical-align: middle;
-}
-
 html, body, #app {
     height: 100%;
     overflow: hidden;
@@ -27,4 +19,13 @@ html, body, #app {
 a {
     text-decoration: none !important;
 }
+
+.material-icons {
+    font-size: inherit !important;
+    // line-height: $line-height-base !important;
+}
+.btn .material-icons {
+    vertical-align: middle;
+}
+
 </style>

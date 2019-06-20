@@ -19,11 +19,22 @@ main();
 let mainWindow;
 
 function createWindow () {
+    let windowData = {};
+
+    if (process.env.NODE_ENV === 'development') {
+        windowData = {
+            width: 800,
+            height: 600,
+        };
+    } else {
+        windowData = {
+            fullscreen: true,
+        };
+    }
+
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        // fullscreen: true,
+        ...windowData,
         darkTheme: true,
 
         webPreferences: {
@@ -31,12 +42,16 @@ function createWindow () {
         },
     });
 
-    // and load the index.html of the app.
-    mainWindow.loadURL('http://192.168.0.13:8080');
-    // mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+    if (process.env.NODE_ENV === 'development') {
+        // load url for vue serve
+        mainWindow.loadURL('http://192.168.0.13:8080');
 
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools()
+        // Open the DevTools.
+        mainWindow.webContents.openDevTools();
+    } else {
+        // load the index.html of the app.
+        mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+    }
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
@@ -68,15 +83,15 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-ipcMain.on('list-drawns', (event) => {
+ipcMain.on('note-list-drawns', (event) => {
     new Promise((resolve, reject) => {
-        db.all('SELECT * FROM note').then(resolve).catch(reject);
+        db.all('SELECT * FROM note ORDER BY id DESC').then(resolve).catch(reject);
     }).then((list) => {
-        event.reply('list-drawns-reply', list);
+        event.reply('note-list-drawns-reply', list);
     }).catch(e => console.log);
 });
 
-ipcMain.on('drawn-save', (event, arg) => {
+ipcMain.on('note-drawn-save', (event, arg) => {
     new Promise((resolve, reject) => {
         const updated = new Date().toISOString();
 
@@ -105,7 +120,7 @@ ipcMain.on('drawn-save', (event, arg) => {
             }).catch(reject);
         }
     }).then((id) => {
-        event.reply('drawn-save-reply', id);
+        event.reply('note-drawn-save-reply', id);
     }).catch(e => console.log);
 });
 
