@@ -13,7 +13,7 @@ $body-color: #fff;
 
 html, body, #app {
     height: 100%;
-    overflow: hidden;
+    // overflow: hidden;
     user-select: none;
 }
 a {
@@ -22,10 +22,8 @@ a {
 
 .material-icons {
     font-size: inherit !important;
-    // line-height: $line-height-base !important;
-}
-.btn .material-icons {
     vertical-align: middle;
+    // line-height: $line-height-base !important;
 }
 
 </style>

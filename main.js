@@ -91,6 +91,39 @@ ipcMain.on('note-list-drawns', (event) => {
     }).catch(e => console.log);
 });
 
+ipcMain.on('note-rename', (event, arg) => {
+    new Promise((resolve, reject) => {
+        db.run(
+            'UPDATE note SET title = ? WHERE id = ?',
+            arg.title,
+            arg.id
+        ).then(() => {
+            resolve();
+        }).catch(reject);
+    }).then(() => {
+        event.reply('note-rename-reply', arg.title);
+    }).catch(e => console.log);
+});
+
+ipcMain.on('note-get', (event, id) => {
+    new Promise((resolve, reject) => {
+        db.get('SELECT * FROM note WHERE id = ?', id).then(resolve).catch(reject);
+    }).then((note) => {
+        const fileContent = fs.readFileSync(
+            path.resolve('.', 'data', 'note', note.path),
+            { encoding: 'base64' }
+        );
+
+        event.reply(
+            'note-get-reply',
+            {
+                ...note,
+                content: `data:image/png;base64,${fileContent}`,
+            }
+        );
+    }).catch(e => console.log);
+});
+
 ipcMain.on('note-drawn-save', (event, arg) => {
     new Promise((resolve, reject) => {
         const updated = new Date().toISOString();
@@ -111,12 +144,20 @@ ipcMain.on('note-drawn-save', (event, arg) => {
                 resolve(stmt.lastID);
             }).catch(reject);
         } else {
-            db.run(
-                'UPDATE note SET updated = ? WHERE id = ?',
-                updated,
-                arg.id
-            ).then(() => {
-                resolve(arg.id);
+            db.get('SELECT path FROM note WHERE id = ?', arg.id).then((note) => {
+                fs.writeFileSync(
+                    path.resolve('.', 'data', 'note', note.path),
+                    arg.content.replace(/.*;base64,/, ''),
+                    { encoding: 'base64' }
+                );
+
+                db.run(
+                    'UPDATE note SET updated = ? WHERE id = ?',
+                    updated,
+                    arg.id
+                ).then(() => {
+                    resolve(arg.id);
+                }).catch(reject);
             }).catch(reject);
         }
     }).then((id) => {

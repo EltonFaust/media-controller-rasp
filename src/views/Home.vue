@@ -5,8 +5,8 @@
                 <b-col xs="4" v-for="(item, iidx) of group" :key="iidx">
                     <router-link :to="item.to" class="border rounded border-primary bg-primary text-white">
                         <div class="action-label">
-                            <div></div>
-                            <div>{{ item.label }}</div>
+                            <div class="item-icon"><i class="material-icons">{{ item.icon }}</i></div>
+                            <div class="item-label">{{ item.label }}</div>
                         </div>
                     </router-link>
                 </b-col>
@@ -47,6 +47,10 @@
 
                         .action-label {
                             flex: 1;
+
+                            .item-icon {
+                                font-size: 2rem;
+                            }
                         }
                     }
                 }
@@ -66,12 +70,12 @@ export default {
     data: () => (
         {
             actions: [
-                { to: { name: 'note-drawn' }, label: 'Note' },
-                { to: { name: 'notes' }, label: 'Notes' },
-                { to: { name: 'note-drawn' }, label: 'Note' },
-                { to: { name: 'note-drawn' }, label: 'Note' },
-                { to: { name: 'note-drawn' }, label: 'Note' },
-                { to: { name: 'note-drawn' }, label: 'Note' },
+                { to: { name: 'note-drawn' }, label: 'Note', icon: 'note_add' },
+                { to: { name: 'notes' }, label: 'Notes', icon: 'notes' },
+                { to: { name: 'note-drawn' }, label: 'Note', icon: 'note_add' },
+                { to: { name: 'note-drawn' }, label: 'Note', icon: 'note_add' },
+                { to: { name: 'note-drawn' }, label: 'Note', icon: 'note_add' },
+                { to: { name: 'note-drawn' }, label: 'Note', icon: 'note_add' },
             ],
         }
     ),

@@ -42,6 +42,7 @@
     @import '~bootstrap/scss/mixins';
 
     .note-drawn {
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         height: 100%;
@@ -76,7 +77,7 @@
                         .color-item {
                             padding: 0 2px;
                             display: inline-block;
-                            vertical-align:middle;
+                            vertical-align: middle;
 
                             .color-select {
                                 height: 20px;
@@ -137,17 +138,22 @@ export default {
             width: el.offsetWidth,
             height: el.offsetHeight - 5,
             backgroundColor: [0, 0, 0],
+            lineWidth: this.size,
+            strokeColor: this.colors[this.color],
         });
-
-        this.drawn.setLineWidth(this.size);
-        this.drawn.setStrokeColor(this.colors[this.color]);
 
         const { id } = this.$route.params;
 
         if (id) {
-            console.log(id);
+            window.ipcRenderer.once('note-get-reply', (event, note) => {
+                this.drawn.restore(note.content, () => {
+                    this.drawn.storeSnapshot();
+                    this.drawn.snapshots.splice(0, 1);
+                });
+            });
+
+            window.ipcRenderer.send('note-get', id);
         }
-        // this.drawn.restore()
     },
     methods: {
         selectColor(colorName) {

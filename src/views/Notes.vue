@@ -1,7 +1,13 @@
 <template>
     <div class="notes">
+        <b-container>
+            <b-row>
+                <b-col class="text-left"><b-link :to="{ name: 'home' }" class="text-white"><i class="material-icons">arrow_back</i> Home</b-link></b-col>
+                <b-col class="text-right"><b-link :to="{ name: 'note-drawn' }" class="text-white"><i class="material-icons">note_add</i> Add</b-link></b-col>
+            </b-row>
+        </b-container>
         <div class="card-columns">
-            <b-card v-for="note of notes" :key="note.id" :title="editingId != note.id ? note.title : ''" :img-src="`../data/note/${note.path}?_t=${note.updated}_`" img-alt="Note" img-top tag="article" class="text-white bg-secondary text-center">
+            <b-card v-for="note of notes" :key="note.id" :title="editingId != note.id ? note.title : ''" :img-src="`../data/note/${note.path}?_t=${note.updated}_`" :ref="`card-${note.id}`" img-alt="Note" img-top tag="article" class="text-white bg-secondary text-center">
                 <b-card-text  v-if="editingId == note.id">
                     <b-form-group label="Enter a new title" label-for="new-title" :invalid-feedback="invalidFeedback" :state="state">
                         <b-form-input v-model="newTitle" :state="state" trim></b-form-input>
@@ -16,6 +22,7 @@
         </div>
 
         <div class="simple-keyboard"></div>
+        <div v-if="editingId" class="simple-keyboard-holder"></div>
     </div>
 </template>
 
@@ -28,17 +35,29 @@
         }
 
         .simple-keyboard {
-            position: absolute;
+            position: fixed;
             left: 0;
             right: 0;
             bottom: 0;
+            background-color: black;
             color: black;
+
+            &.hg-layout-default,
+            &.hg-layout-shift {
+                .hg-button-numbers,
+                .hg-button-cancel {
+                    flex-grow: .3;
+                }
+            }
 
             .hg-button {
                 height: 25px;
             }
         }
 
+        .simple-keyboard-holder {
+            height: 125px;
+        }
     }
 </style>
 
@@ -86,12 +105,9 @@ export default {
 
             this.keyboardInstace = new Keyboard({
                 onChange: (input) => {
-                    console.log('Input changed', input);
                     this.newTitle = input;
                 },
                 onKeyPress: (button) => {
-                    console.log('Button pressed', button);
-
                     if (button === '{shift}' || button === '{lock}') {
                         const currentLayout = this.keyboardInstace.options.layoutName;
                         const shiftToggle = currentLayout === 'default' ? 'shift' : 'default';
@@ -110,7 +126,7 @@ export default {
                         });
                     }
 
-                    if (button === '{close}') {
+                    if (button === '{cancel}') {
                         this.cancel();
                     }
                 },
@@ -121,13 +137,13 @@ export default {
                         'q w e r t y u i o p',
                         'a s d f g h j k l',
                         '{shift} z x c v b n m {backspace}',
-                        '{close} {numbers} {space}',
+                        '{numbers} {space} {cancel}',
                     ],
                     shift: [
                         'Q W E R T Y U I O P',
                         'A S D F G H J K L',
                         '{shift} Z X C V B N M {backspace}',
-                        '{close} {numbers} {space}',
+                        '{numbers} {space} {cancel}',
                     ],
                     numbers: [
                         '1 2 3',
@@ -151,14 +167,25 @@ export default {
                     '{metaleft}': 'cmd ⌘',
                     '{metaright}': 'cmd ⌘',
                     '{abc}': 'ABC',
-                    '{close}': 'CLOSE',
+                    '{cancel}': '<i class="material-icons">close</i>',
                 },
             });
 
             this.keyboardInstace.setInput(this.newTitle);
+
+            this.$nextTick(() => {
+                window.scrollTo(0, this.$refs[`card-${id}`][0].offsetTop - 5);
+            });
         },
         save() {
-            //
+            window.ipcRenderer.once('note-rename-reply', (event, newTitle) => {
+                this.notes.find(n => n.id === this.editingId).title = newTitle;
+                console.log(this.notes.find(n => n.id === this.editingId));
+                // this.notes[this.notes.find(n => n.id === this.editingId)].title = newTitle;
+                this.cancel();
+            });
+
+            window.ipcRenderer.send('note-rename', { id: this.editingId, title: this.newTitle });
         },
         cancel() {
             this.keyboardInstace.destroy();
