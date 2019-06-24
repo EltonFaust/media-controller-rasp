@@ -26,6 +26,11 @@ export default new Router({
             name: 'note-edit-drawn',
             component: () => import(/* webpackChunkName: "page-note-drawn" */ './views/NoteDrawn.vue'),
         },
+        {
+            path: '/cameras',
+            name: 'cameras',
+            component: () => import(/* webpackChunkName: "page-cameras" */ './views/Cameras.vue'),
+        },
         // {
         //     path: '/note-drawn',
         //     name: 'note-drawn',
