@@ -5,8 +5,12 @@
 </template>
 
 <style lang="scss">
-$body-bg: #000;
-$body-color: #fff;
+@import 'node_modules/bootstrap/scss/functions';
+@import 'node_modules/bootstrap/scss/variables';
+
+$body-bg: $black;
+$body-color: $white;
+$modal-content-color: $gray-900;
 
 @import 'node_modules/bootstrap/scss/bootstrap';
 @import 'node_modules/bootstrap-vue/src/index.scss';

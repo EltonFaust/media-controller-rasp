@@ -14,6 +14,10 @@
                     </b-form-group>
                 </b-card-text>
 
+                <b-button variant="danger" size="sm" class="remove-note" @click="openModalForRemove(note.id)">
+                    <i class="material-icons">highlight_remove</i>
+                </b-button>
+
                 <b-link v-if="!editingId" @click="edit(note.id)" href="#" class="text-white card-link">Change title</b-link>
                 <b-link v-if="!editingId" :to="{ name: 'note-edit-drawn', params: { id: note.id } }" class="text-white card-link">Edit note</b-link>
                 <b-link v-if="editingId == note.id" @click="save" href="#" class="text-white card-link">Save</b-link>
@@ -23,6 +27,10 @@
 
         <div class="simple-keyboard"></div>
         <div v-if="editingId" class="simple-keyboard-holder"></div>
+
+        <b-modal id="modal-remove-note" title="Remove note" @ok="remove">
+            <p class="my-4">Confirm remove note "<b>{{ removingNote ? removingNote.title : '' }}</b>"?</p>
+        </b-modal>
     </div>
 </template>
 
@@ -30,8 +38,19 @@
     .notes {
         padding: 5px 5px 0 5px;
 
-        .card .card-body .card-title {
-            font-size: 1.1rem;
+        .card .card-body {
+             .card-title {
+                font-size: 1.1rem;
+            }
+
+            .remove-note {
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                font-size: 25px;
+                padding: 0.2rem;
+                line-height: 1;
+            }
         }
 
         .simple-keyboard {
@@ -71,6 +90,7 @@ export default {
             notes: [],
             newTitle: '',
             editingId: null,
+            removingId: null,
             keyboardInstace: null,
         };
     },
@@ -88,6 +108,21 @@ export default {
             }
 
             return 'Please enter something';
+        },
+        removingNote() {
+            let removingNote = null;
+
+            this.notes.some((note) => {
+                if (this.removingId === note.id) {
+                    removingNote = note;
+                    return true;
+                }
+
+                return false;
+            });
+
+
+            return removingNote;
         },
     },
     methods: {
@@ -174,14 +209,15 @@ export default {
             this.keyboardInstace.setInput(this.newTitle);
 
             this.$nextTick(() => {
-                window.scrollTo(0, this.$refs[`card-${id}`][0].offsetTop - 5);
+                const cardEl = this.$refs[`card-${id}`][0];
+                const cardBodyEl = cardEl.querySelector('.card-body');
+
+                window.scrollTo(0, (cardEl.offsetTop + cardBodyEl.offsetTop) - 5);
             });
         },
         save() {
             window.ipcRenderer.once('note-rename-reply', (event, newTitle) => {
                 this.notes.find(n => n.id === this.editingId).title = newTitle;
-                console.log(this.notes.find(n => n.id === this.editingId));
-                // this.notes[this.notes.find(n => n.id === this.editingId)].title = newTitle;
                 this.cancel();
             });
 
@@ -192,6 +228,27 @@ export default {
             this.keyboardInstace = null;
             this.editingId = null;
             this.newTitle = '';
+        },
+        openModalForRemove(noteId) {
+            this.removingId = noteId;
+            this.$bvModal.show('modal-remove-note');
+        },
+        remove(event) {
+            event.preventDefault();
+
+            console.log('TODO: criar listener no main remover nota')
+
+            window.ipcRenderer.once('note-remove-reply', () => {
+                const rmIdx = this.notes.findIndex(idx => idx === this.removingId);
+
+                if (rmIdx) {
+                    this.$delete(this.notes, rmIdx);
+                }
+
+                this.$bvModal.hide('modal-remove-note');
+            });
+
+            window.ipcRenderer.send('note-remove');
         },
     },
     mounted() {
