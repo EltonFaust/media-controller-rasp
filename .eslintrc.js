@@ -8,13 +8,11 @@ module.exports = {
         '@vue/airbnb',
     ],
     rules: {
+        // auto remove console on build
         'no-console': 'off',
-        'no-debugger': 'off',
-        // 'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-        // 'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+        'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
         indent: ['error', 4],
         'max-len': 'off',
-        'new-cap': ['error', { "newIsCapExceptionPattern": "^CanvasFreeDrawing\.." }]
     },
     parserOptions: {
         parser: 'babel-eslint',

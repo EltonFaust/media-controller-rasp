@@ -5,8 +5,8 @@
   "main": "main.js",
   "scripts": {
     "postinstall": "install-app-deps",
-    "serve": "cross-env NODE_ENV=development node pre-process.js && cross-env NODE_ENV=development vue-cli-service serve",
-    "build": "cross-env NODE_ENV=production node pre-process.js && cross-env NODE_ENV=production vue-cli-service build",
+    "serve": "cross-env-shell NODE_ENV=development \"node pre-process.js && vue-cli-service serve\"",
+    "build": "cross-env-shell NODE_ENV=production \"node pre-process.js && vue-cli-service build\"",
     "lint": "vue-cli-service lint",
     "start": "cross-env NODE_ENV=production electron .",
     "start-dev": "cross-env NODE_ENV=development electron ."
@@ -16,6 +16,7 @@
     "bootstrap-vue": "^2.0.0-rc.23",
     "canvas-free-drawing": "^2.0.4",
     "core-js": "^2.6.5",
+    "electron": "^5.0.3",
     "jquery": "^3.4.1",
     "material-design-icons-iconfont": "^5.0.1",
     "md5": "^2.2.1",
@@ -31,8 +32,8 @@
     "@vue/cli-service": "^3.8.0",
     "@vue/eslint-config-airbnb": "^4.0.0",
     "babel-eslint": "^10.0.1",
+    "babel-plugin-transform-remove-console": "^6.9.4",
     "cross-env": "^5.2.0",
-    "electron": "^5.0.3",
     "electron-builder": "^20.43.0",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",

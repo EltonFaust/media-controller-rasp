@@ -236,7 +236,7 @@ export default {
         remove(event) {
             event.preventDefault();
 
-            console.log('TODO: criar listener no main remover nota')
+            console.log('TODO: criar listener no main remover nota');
 
             window.ipcRenderer.once('note-remove-reply', () => {
                 const rmIdx = this.notes.findIndex(idx => idx === this.removingId);

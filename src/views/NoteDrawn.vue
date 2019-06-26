@@ -133,6 +133,7 @@ export default {
     mounted() {
         const el = document.querySelector('.note-drawn .drawning-area');
 
+        // eslint-disable-next-line new-cap
         this.drawn = new CanvasFreeDrawing.default({
             elementId: 'note-drawning',
             width: el.offsetWidth,

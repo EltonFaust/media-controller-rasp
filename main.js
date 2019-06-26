@@ -1,9 +1,9 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, ipcMain } = require('electron');
-const path   = require('path');
-const fs     = require('fs');
+const path = require('path');
+const fs = require('fs');
 const sqlite = require('sqlite');
-const md5    = require('md5');
+const md5 = require('md5');
 
 let db = null;
 
@@ -18,7 +18,7 @@ main();
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
-function createWindow () {
+function createWindow() {
     let windowData = {};
 
     if (process.env.NODE_ENV === 'development') {
@@ -44,7 +44,7 @@ function createWindow () {
 
     if (process.env.NODE_ENV === 'development') {
         // load url for vue serve
-        mainWindow.loadURL('http://192.168.0.13:8080');
+        mainWindow.loadURL('http://localhost:8080');
 
         // Open the DevTools.
         mainWindow.webContents.openDevTools();
@@ -54,7 +54,7 @@ function createWindow () {
     }
 
     // Emitted when the window is closed.
-    mainWindow.on('closed', function () {
+    mainWindow.on('closed', () => {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
@@ -68,13 +68,13 @@ function createWindow () {
 app.on('ready', createWindow);
 
 // Quit when all windows are closed.
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') app.quit();
 });
 
-app.on('activate', function () {
+app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) createWindow();
@@ -88,7 +88,7 @@ ipcMain.on('note-list-drawns', (event) => {
         db.all('SELECT * FROM note ORDER BY id DESC').then(resolve).catch(reject);
     }).then((list) => {
         event.reply('note-list-drawns-reply', list);
-    }).catch(e => console.log);
+    }).catch(console.error);
 });
 
 ipcMain.on('note-rename', (event, arg) => {
@@ -96,13 +96,13 @@ ipcMain.on('note-rename', (event, arg) => {
         db.run(
             'UPDATE note SET title = ? WHERE id = ?',
             arg.title,
-            arg.id
+            arg.id,
         ).then(() => {
             resolve();
         }).catch(reject);
     }).then(() => {
         event.reply('note-rename-reply', arg.title);
-    }).catch(e => console.log);
+    }).catch(console.error);
 });
 
 ipcMain.on('note-get', (event, id) => {
@@ -111,7 +111,7 @@ ipcMain.on('note-get', (event, id) => {
     }).then((note) => {
         const fileContent = fs.readFileSync(
             path.resolve('.', 'data', 'note', note.path),
-            { encoding: 'base64' }
+            { encoding: 'base64' },
         );
 
         event.reply(
@@ -119,9 +119,9 @@ ipcMain.on('note-get', (event, id) => {
             {
                 ...note,
                 content: `data:image/png;base64,${fileContent}`,
-            }
+            },
         );
-    }).catch(e => console.log);
+    }).catch(console.error);
 });
 
 ipcMain.on('note-drawn-save', (event, arg) => {
@@ -134,12 +134,12 @@ ipcMain.on('note-drawn-save', (event, arg) => {
             fs.writeFileSync(
                 path.resolve('.', 'data', 'note', filePath),
                 arg.content.replace(/.*;base64,/, ''),
-                { encoding: 'base64' }
+                { encoding: 'base64' },
             );
 
             db.run(
                 'INSERT INTO note(title, path, created, updated) VALUES(?, ?, ?, ?)',
-                updated.substr(0, 19).replace(/T/, ' '), filePath, updated, updated
+                updated.substr(0, 19).replace(/T/, ' '), filePath, updated, updated,
             ).then((stmt) => {
                 resolve(stmt.lastID);
             }).catch(reject);
@@ -148,13 +148,13 @@ ipcMain.on('note-drawn-save', (event, arg) => {
                 fs.writeFileSync(
                     path.resolve('.', 'data', 'note', note.path),
                     arg.content.replace(/.*;base64,/, ''),
-                    { encoding: 'base64' }
+                    { encoding: 'base64' },
                 );
 
                 db.run(
                     'UPDATE note SET updated = ? WHERE id = ?',
                     updated,
-                    arg.id
+                    arg.id,
                 ).then(() => {
                     resolve(arg.id);
                 }).catch(reject);
@@ -162,7 +162,7 @@ ipcMain.on('note-drawn-save', (event, arg) => {
         }
     }).then((id) => {
         event.reply('note-drawn-save-reply', id);
-    }).catch(e => console.log);
+    }).catch(console.error);
 });
 
 // ipcMain.on('asynchronous-message', (event, arg) => {

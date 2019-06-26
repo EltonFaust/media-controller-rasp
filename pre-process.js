@@ -1,22 +1,17 @@
 
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
 
+const lsPath = path.resolve(path.join('.', 'public', 'data'));
+
 if (process.env.NODE_ENV === 'development') {
-    try {
+    if (!fs.existsSync(lsPath)) {
         fs.symlinkSync(
             path.resolve(path.join('.', 'data')),
-            path.resolve(path.join('.', 'public', 'data')),
-            'dir'
+            lsPath,
+            'dir',
         );
-    } catch(e) {
-
     }
-} else {
-    try {
-        fs.unlinkSync(path.resolve(path.join('.', 'public', 'data')));
-    } catch(e) {
-
-    }
+} else if (fs.existsSync(lsPath)) {
+    fs.unlinkSync(lsPath);
 }
-
