@@ -127,16 +127,8 @@ export default {
     },
     methods: {
         edit(id) {
-            this.notes.some((note) => {
-                if (id === note.id) {
-                    this.newTitle = note.title;
-                    return true;
-                }
-
-                return false;
-            });
-
             this.editingId = id;
+            this.newTitle = this.notes.find(({ id }) => id === this.editingId).title;
 
             this.keyboardInstace = new Keyboard({
                 onChange: (input) => {
@@ -209,7 +201,7 @@ export default {
             this.keyboardInstace.setInput(this.newTitle);
 
             this.$nextTick(() => {
-                const cardEl = this.$refs[`card-${id}`][0];
+                const cardEl = this.$refs[`card-${this.editingId}`][0];
                 const cardBodyEl = cardEl.querySelector('.card-body');
 
                 window.scrollTo(0, (cardEl.offsetTop + cardBodyEl.offsetTop) - 5);
@@ -217,7 +209,12 @@ export default {
         },
         save() {
             window.ipcRenderer.once('note-rename-reply', (event, newTitle) => {
-                this.notes.find(n => n.id === this.editingId).title = newTitle;
+                const editIdx = this.notes.findIndex(({ id }) => id === this.editingId);
+
+                if (editIdx !== -1) {
+                    this.$set(this.notes[editIdx], 'title', newTitle);
+                }
+
                 this.cancel();
             });
 
@@ -236,19 +233,17 @@ export default {
         remove(event) {
             event.preventDefault();
 
-            console.log('TODO: criar listener no main remover nota');
-
             window.ipcRenderer.once('note-remove-reply', () => {
-                const rmIdx = this.notes.findIndex(idx => idx === this.removingId);
+                const rmIdx = this.notes.findIndex(({ id }) => id === this.removingId);
 
-                if (rmIdx) {
+                if (rmIdx !== -1) {
                     this.$delete(this.notes, rmIdx);
                 }
 
                 this.$bvModal.hide('modal-remove-note');
             });
 
-            window.ipcRenderer.send('note-remove');
+            window.ipcRenderer.send('note-remove', this.removingId);
         },
     },
     mounted() {

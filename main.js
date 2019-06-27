@@ -165,6 +165,20 @@ ipcMain.on('note-drawn-save', (event, arg) => {
     }).catch(console.error);
 });
 
+ipcMain.on('note-remove', (event, id) => {
+    new Promise((resolve, reject) => {
+        db.get('SELECT path FROM note WHERE id = ?', id).then((note) => {
+            fs.unlinkSync(path.resolve('.', 'data', 'note', note.path));
+
+            db.run('DELETE FROM note WHERE id = ?', id).then(() => {
+                resolve();
+            }).catch(reject);
+        }).catch(reject);
+    }).then(() => {
+        event.reply('note-remove-reply');
+    }).catch(console.error);
+});
+
 // ipcMain.on('asynchronous-message', (event, arg) => {
 //     console.log(arg) // prints "ping"
 //     event.reply('asynchronous-reply', 'pong')
