@@ -1,5 +1,5 @@
 <template>
-    <div class="home">
+    <div class="home" scoped>
         <b-container fluid class="actions">
             <b-row v-for="(group, gidx) of actionGroups" :key="gidx">
                 <b-col xs="4" v-for="(item, iidx) of group" :key="iidx">
@@ -37,10 +37,6 @@
 </template>
 
 <style lang="scss">
-    @import 'node_modules/bootstrap/scss/functions';
-    @import 'node_modules/bootstrap/scss/variables';
-    @import 'node_modules/bootstrap/scss/mixins';
-
     .home {
         height: 100%;
         overflow: hidden;

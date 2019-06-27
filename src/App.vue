@@ -5,13 +5,6 @@
 </template>
 
 <style lang="scss">
-@import 'node_modules/bootstrap/scss/functions';
-@import 'node_modules/bootstrap/scss/variables';
-
-$body-bg: $black;
-$body-color: $white;
-$modal-content-color: $gray-900;
-
 @import 'node_modules/bootstrap/scss/bootstrap';
 @import 'node_modules/bootstrap-vue/src/index.scss';
 
@@ -24,8 +17,10 @@ a {
     text-decoration: none !important;
 }
 
-#app, a {
-    cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=), none;
+@if ($production) {
+    #app, a {
+        cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=), none;
+    }
 }
 
 .material-icons {

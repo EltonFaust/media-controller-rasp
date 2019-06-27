@@ -1,5 +1,5 @@
 <template>
-    <div class="note-drawn">
+    <div class="note-drawn" scoped>
         <div class="drawning-area" id="note-drawning"></div>
         <!-- <b-container fluid class="drawning-area" id="note-drawning"></b-container> -->
         <b-container fluid class="drawn-options border-top border-secondary">

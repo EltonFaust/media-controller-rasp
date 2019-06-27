@@ -1,5 +1,5 @@
 <template>
-    <div class="notes">
+    <div class="notes" scoped>
         <b-container>
             <b-row>
                 <b-col class="text-left"><b-link :to="{ name: 'home' }" class="text-white"><i class="material-icons">arrow_back</i> Home</b-link></b-col>
@@ -9,8 +9,8 @@
         <div class="card-columns">
             <b-card v-for="note of notes" :key="note.id" :title="editingId != note.id ? note.title : ''" :img-src="`../data/note/${note.path}?_t=${note.updated}_`" :ref="`card-${note.id}`" img-alt="Note" img-top tag="article" class="text-white bg-secondary text-center">
                 <b-card-text  v-if="editingId == note.id">
-                    <b-form-group label="Enter a new title" label-for="new-title" :invalid-feedback="invalidFeedback" :state="state">
-                        <b-form-input v-model="newTitle" :state="state" trim></b-form-input>
+                    <b-form-group label="Enter a new title" label-for="new-title" :invalid-feedback="renameInvalidFeedback" :state="renameState">
+                        <b-form-input v-model="newTitle" :state="renameState" trim></b-form-input>
                     </b-form-group>
                 </b-card-text>
 
@@ -20,7 +20,7 @@
 
                 <b-link v-if="!editingId" @click="edit(note.id)" href="#" class="text-white card-link">Change title</b-link>
                 <b-link v-if="!editingId" :to="{ name: 'note-edit-drawn', params: { id: note.id } }" class="text-white card-link">Edit note</b-link>
-                <b-link v-if="editingId == note.id" @click="save" href="#" class="text-white card-link">Save</b-link>
+                <b-link v-if="editingId == note.id" @click="save" :disabled="!renameState" href="#" class="text-white card-link">Save</b-link>
                 <b-link v-if="editingId == note.id" @click="cancel" href="#" class="text-white card-link">Cancel</b-link>
             </b-card>
         </div>
@@ -95,11 +95,11 @@ export default {
         };
     },
     computed: {
-        state() {
+        renameState() {
             return this.newTitle.length >= 4;
         },
-        invalidFeedback() {
-            if (this.newTitle.length > 4) {
+        renameInvalidFeedback() {
+            if (this.newTitle.length >= 4) {
                 return '';
             }
 

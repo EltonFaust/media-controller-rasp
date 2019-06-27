@@ -1,5 +1,5 @@
 <template>
-    <div class="cameras">
+    <div class="cameras" scoped>
         <b-container>
             <b-row>
                 <b-col class="text-left"><b-link :to="{ name: 'home' }" class="text-white"><i class="material-icons">arrow_back</i> Home</b-link></b-col>

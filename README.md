@@ -4,26 +4,30 @@
 ```
 npm install
 ```
+---
+## Production
 
-### Compiles and hot-reloads for development
+Uses a pre-built version saved on `dist` directory
+
+## Start app
+```
+npm run start
+```
+## Build app
+```
+npm run build
+```
+---
+## Development usage
+
+Requires 2 terminal sessions
+
+### Real time compiles and hot-reloads for development
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+### Start app on development
 ```
-npm run build
+npm run start-dev
 ```
-
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
