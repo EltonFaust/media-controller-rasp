@@ -126,8 +126,8 @@ export default {
         },
     },
     methods: {
-        edit(id) {
-            this.editingId = id;
+        edit(noteId) {
+            this.editingId = noteId;
             this.newTitle = this.notes.find(({ id }) => id === this.editingId).title;
 
             this.keyboardInstace = new Keyboard({
