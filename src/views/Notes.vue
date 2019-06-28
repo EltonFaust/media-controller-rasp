@@ -1,5 +1,5 @@
 <template>
-    <div class="notes" scoped>
+    <div class="notes">
         <b-container>
             <b-row>
                 <b-col class="text-left"><b-link :to="{ name: 'home' }" class="text-white"><i class="material-icons">arrow_back</i> Home</b-link></b-col>
@@ -34,7 +34,7 @@
     </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
     .notes {
         padding: 5px 5px 0 5px;
 

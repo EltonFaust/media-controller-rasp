@@ -1,5 +1,5 @@
 <template>
-    <div class="note-drawn" scoped>
+    <div class="note-drawn">
         <div class="drawning-area" id="note-drawning"></div>
         <!-- <b-container fluid class="drawning-area" id="note-drawning"></b-container> -->
         <b-container fluid class="drawn-options border-top border-secondary">
@@ -36,11 +36,7 @@
     </div>
 </template>
 
-<style lang="scss">
-    @import '~bootstrap/scss/functions';
-    @import '~bootstrap/scss/variables';
-    @import '~bootstrap/scss/mixins';
-
+<style lang="scss" scoped>
     .note-drawn {
         overflow: hidden;
         display: flex;

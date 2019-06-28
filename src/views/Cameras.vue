@@ -1,5 +1,5 @@
 <template>
-    <div class="cameras" scoped>
+    <div class="cameras">
         <b-container>
             <b-row>
                 <b-col class="text-left"><b-link :to="{ name: 'home' }" class="text-white"><i class="material-icons">arrow_back</i> Home</b-link></b-col>
@@ -9,7 +9,7 @@
     </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
     .cameras {
     }
 </style>

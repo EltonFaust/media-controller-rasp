@@ -1,5 +1,5 @@
 <template>
-    <div class="home" scoped>
+    <div class="home">
         <b-container fluid class="actions">
             <b-row v-for="(group, gidx) of actionGroups" :key="gidx">
                 <b-col xs="4" v-for="(item, iidx) of group" :key="iidx">
@@ -12,31 +12,11 @@
                 </b-col>
             </b-row>
         </b-container>
-        <b-container class="media-controls">
-            <div class="play-container">
-                <div class="play-action" @click="playPause">
-                    <i class="icon material-icons">play_arrow</i>/<i class="icon material-icons">pause</i>
-                </div>
-            </div>
-            <b-row>
-                <b-col class="primary-actions">
-                    <div class="actions-container">
-                        <div class="volume-action"></div>
-                        <div class="track-action" @click="prevTrack"><i class="material-icons">skip_previous</i></div>
-                    </div>
-                </b-col>
-                <b-col class="secondary-actions">
-                    <div class="actions-container">
-                        <div class="track-action" @click="nextTrack"><i class="material-icons">skip_next</i></div>
-                        <div class="volume-action"></div>
-                    </div>
-                </b-col>
-            </b-row>
-        </b-container>
+        <media-controls></media-controls>
     </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
     .home {
         height: 100%;
         overflow: hidden;
@@ -73,82 +53,10 @@
                 }
             }
         }
-
-        .media-controls {
-            position: relative;
-            height: 60px;
-            padding: 5px 0;
-
-            * {
-                height: 50px;
-            }
-
-            .play-container {
-                position: absolute;
-                width: 50px;
-                left: 50%;
-                margin-left: -25px;
-                z-index: 2;
-
-                .play-action {
-                    text-align: center;
-                    @include border-radius(25px);
-                    border: 1px solid black;
-                    font-size: 14px;
-                    padding: 14px 0;
-
-                    * {
-                        height: auto;
-                    }
-
-                    .icon {
-                        font-size: 20px !important;
-                    }
-                }
-            }
-
-            .row .col {
-                .actions-container {
-                    display: flex;
-
-                    .volume-action {
-                        flex: 1;
-                    }
-
-                    .track-action {
-                        width: 80px;
-                        padding: 10px 0;
-                        font-size: 30px;
-                        background-color: theme-color("primary");
-                    }
-                }
-
-                &.primary-actions {
-                    padding-right: 0;
-
-                    .track-action {
-                        padding-left: 15px;
-                        text-align: left;
-                        @include border-left-radius(20px);
-                    }
-                }
-
-                &.secondary-actions {
-                    padding-left: 0;
-
-                    .track-action {
-                        padding-right: 15px;
-                        text-align: right;
-                        @include border-right-radius(20px);
-                    }
-                }
-            }
-        }
     }
 </style>
 
 <script>
-import 'material-design-icons-iconfont/dist/material-design-icons.css';
 // @ is an alias to /src
 // import HelloWorld from '@/components/HelloWorld.vue';
 // import ipcRenderer from 'electron';
@@ -186,15 +94,6 @@ export default {
         },
     },
     methods: {
-        playPause() {
-            window.ipcRenderer.send('audio-play-pause');
-        },
-        prevTrack() {
-            window.ipcRenderer.send('audio-prev-track');
-        },
-        nextTrack() {
-            window.ipcRenderer.send('audio-next-track');
-        },
         // clk() {
         //     // window.test();
         //     // alert(window.ipcRenderer.sendSync('synchronous-message', 'ping'));

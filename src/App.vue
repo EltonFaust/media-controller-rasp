@@ -5,8 +5,8 @@
 </template>
 
 <style lang="scss">
-@import 'node_modules/bootstrap/scss/bootstrap';
-@import 'node_modules/bootstrap-vue/src/index.scss';
+@import '~bootstrap/scss/bootstrap.scss';
+@import '~bootstrap-vue/src/index.scss';
 
 html, body, #app {
     height: 100%;
@@ -28,5 +28,4 @@ a {
     vertical-align: middle;
     // line-height: $line-height-base !important;
 }
-
 </style>
