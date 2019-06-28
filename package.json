@@ -2,7 +2,7 @@
   "name": "media-controller-rasp",
   "version": "1.0.0",
   "private": true,
-  "main": "main.js",
+  "main": "src_app/main.js",
   "scripts": {
     "postinstall": "install-app-deps",
     "serve": "cross-env-shell NODE_ENV=development \"node pre-process.js && vue-cli-service serve\"",
