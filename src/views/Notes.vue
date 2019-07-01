@@ -52,31 +52,33 @@
                 line-height: 1;
             }
         }
+    }
+</style>
 
-        .simple-keyboard {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: black;
-            color: black;
+<style lang="scss">
+    .simple-keyboard {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: black;
+        color: black;
 
-            &.hg-layout-default,
-            &.hg-layout-shift {
-                .hg-button-numbers,
-                .hg-button-cancel {
-                    flex-grow: .3;
-                }
-            }
-
-            .hg-button {
-                height: 25px;
+        &.hg-layout-default,
+        &.hg-layout-shift {
+            .hg-button-numbers,
+            .hg-button-cancel {
+                flex-grow: .3;
             }
         }
 
-        .simple-keyboard-holder {
-            height: 125px;
+        .hg-button {
+            height: 25px !important;
         }
+    }
+
+    .simple-keyboard-holder {
+        height: 125px;
     }
 </style>
 
