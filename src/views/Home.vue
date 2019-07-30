@@ -13,6 +13,13 @@
             </b-row>
         </b-container>
         <media-controls></media-controls>
+        <div class="close-button">
+            <div class="click-area" @click="close"></div>
+            <div class="click-button" @click="close"><i class="material-icons">close</i></div>
+        </div>
+        <b-modal id="modal-close" title="Close app" @ok="confirmClose">
+            <p class="my-4">Do you want to close the app?</p>
+        </b-modal>
     </div>
 </template>
 
@@ -51,6 +58,29 @@
                         }
                     }
                 }
+            }
+        }
+
+        .close-button {
+            padding: 5px;
+            position: fixed;
+            bottom: -45px;
+            right: -45px;
+            font-size: 20px;
+            line-height: 1;
+
+
+            .click-area {
+                width: 80px;
+                height: 80px;
+                background-color: $primary;
+                transform: rotate(45deg);
+            }
+
+            .click-button {
+                position: absolute;
+                top: 20px;
+                left: 20px;
             }
         }
     }
@@ -94,6 +124,12 @@ export default {
         },
     },
     methods: {
+        close() {
+            this.$bvModal.show('modal-close');
+        },
+        confirmClose() {
+            window.close();
+        },
         // clk() {
         //     // window.test();
         //     // alert(window.ipcRenderer.sendSync('synchronous-message', 'ping'));
