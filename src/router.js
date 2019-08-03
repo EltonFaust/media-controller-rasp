@@ -12,6 +12,11 @@ export default new Router({
             component: Home,
         },
         {
+            path: '/settings',
+            name: 'settings',
+            component: () => import(/* webpackChunkName: "page-settings" */ './views/Settings.vue'),
+        },
+        {
             path: '/notes',
             name: 'notes',
             component: () => import(/* webpackChunkName: "page-notes" */ './views/Notes.vue'),

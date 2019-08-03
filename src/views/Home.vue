@@ -12,6 +12,10 @@
                 </b-col>
             </b-row>
         </b-container>
+        <div class="settings-button">
+            <router-link tag="div" class="click-area" :to="{ name: 'settings' }"></router-link>
+            <router-link tag="div" class="click-button" :to="{ name: 'settings' }"><i class="material-icons">settings</i></router-link>
+        </div>
         <media-controls></media-controls>
         <div class="close-button">
             <div class="click-area" @click="close"></div>
@@ -61,14 +65,31 @@
             }
         }
 
+        .settings-button {
+            left: -45px;
+
+            .click-button {
+                right: 20px;
+                top: 18px;
+            }
+        }
+        .close-button {
+            right: -45px;
+
+            .click-button {
+                left: 20px;
+                top: 20px;
+            }
+        }
+
+        .settings-button,
         .close-button {
             padding: 5px;
             position: fixed;
             bottom: -45px;
-            right: -45px;
             font-size: 20px;
             line-height: 1;
-
+            z-index: 1;
 
             .click-area {
                 width: 80px;
@@ -79,8 +100,6 @@
 
             .click-button {
                 position: absolute;
-                top: 20px;
-                left: 20px;
             }
         }
     }
@@ -141,5 +160,16 @@ export default {
         //     // window.ipcRenderer.send('asynchronous-message', 'ping');
         // },
     },
+
+    // asyncData() {
+    //     return new Promise((resolve) => {
+    //         console.log('aaa');
+
+    //         window.setTimeout(() => {
+    //             console.log('bbb');
+    //             resolve();
+    //         }, 5000);
+    //     });
+    // },
 };
 </script>

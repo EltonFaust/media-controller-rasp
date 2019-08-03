@@ -29,3 +29,13 @@ a {
     // line-height: $line-height-base !important;
 }
 </style>
+
+<script>
+export default {
+    name: 'app',
+    // computed() {
+    // mounted() {
+    //     console.log('aaa')
+    // },
+};
+</script>

@@ -1,17 +1,20 @@
 <template>
-    <div class="cameras">
-        <nav-actions></nav-actions>
+    <div class="settings">
+        <nav-actions>
+            <span></span>
+            <b-link :to="{ name: 'note-drawn' }" class=""><i class="material-icons">note_add</i> Add</b-link>
+        </nav-actions>
     </div>
 </template>
 
 <style lang="scss" scoped>
-    .cameras {
+    .settings {
     }
 </style>
 
 <script>
 export default {
-    name: 'cameras',
+    name: 'settings',
     // data() {
     //     return {
     //         notes: [],

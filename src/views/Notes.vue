@@ -1,11 +1,8 @@
 <template>
     <div class="notes">
-        <b-container>
-            <b-row>
-                <b-col class="text-left"><b-link :to="{ name: 'home' }" class="text-white"><i class="material-icons">arrow_back</i> Home</b-link></b-col>
-                <b-col class="text-right"><b-link :to="{ name: 'note-drawn' }" class="text-white"><i class="material-icons">note_add</i> Add</b-link></b-col>
-            </b-row>
-        </b-container>
+        <nav-actions>
+            <b-link :to="{ name: 'note-drawn' }"><i class="material-icons">note_add</i> Add</b-link>
+        </nav-actions>
         <div class="card-columns">
             <b-card v-for="note of notes" :key="note.id" :title="editingId != note.id ? note.title : ''" :img-src="`../data/note/${note.path}?_t=${note.updated}_`" :ref="`card-${note.id}`" img-alt="Note" img-top tag="article" class="text-white bg-secondary text-center">
                 <b-card-text  v-if="editingId == note.id">
@@ -35,8 +32,8 @@
 </template>
 
 <style lang="scss" scoped>
-    .notes {
-        padding: 5px 5px 0 5px;
+    .notes .card-columns {
+        padding: 0 5px 0 5px;
 
         .card .card-body {
              .card-title {
