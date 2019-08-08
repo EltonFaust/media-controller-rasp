@@ -79,4 +79,5 @@ router.onReady(() => {
     });
 
     app.$mount('#app');
+    router.replace('#');
 });

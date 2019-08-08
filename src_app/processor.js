@@ -11,6 +11,14 @@ async function prepare() {
 }
 
 function listen() {
+    ipcMain.on('fetch-settings', (event) => {
+        new Promise((resolve, reject) => {
+            db.all('SELECT * FROM setting').then(resolve).catch(reject);
+        }).then((settings) => {
+            event.reply('fetch-settings-reply', settings);
+        }).catch(console.error);
+    });
+
     ipcMain.on('note-list-drawns', (event) => {
         new Promise((resolve, reject) => {
             db.all('SELECT * FROM note ORDER BY id DESC').then(resolve).catch(reject);

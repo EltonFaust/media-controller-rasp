@@ -1,9 +1,10 @@
 <template>
     <div class="settings">
-        <nav-actions>
-            <span></span>
-            <b-link :to="{ name: 'note-drawn' }" class=""><i class="material-icons">note_add</i> Add</b-link>
-        </nav-actions>
+        <nav-actions></nav-actions>
+
+        <div>
+            <pre>{{ storeData }}</pre>
+        </div>
     </div>
 </template>
 
@@ -29,6 +30,11 @@ export default {
         // });
 
         // window.ipcRenderer.send('note-list-drawns');
+    },
+    computed: {
+        storeData() {
+            return JSON.stringify(this.$store.state, null, 4);
+        },
     },
 };
 </script>

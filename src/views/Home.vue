@@ -106,6 +106,7 @@
 </style>
 
 <script>
+import { ACTIONS } from '@/store/_types';
 // @ is an alias to /src
 // import HelloWorld from '@/components/HelloWorld.vue';
 // import ipcRenderer from 'electron';
@@ -161,15 +162,13 @@ export default {
         // },
     },
 
-    // asyncData() {
-    //     return new Promise((resolve) => {
-    //         console.log('aaa');
-
-    //         window.setTimeout(() => {
-    //             console.log('bbb');
-    //             resolve();
-    //         }, 5000);
-    //     });
-    // },
+    asyncData({ store }) {
+        return Promise.all(
+            [
+                store.dispatch(ACTIONS.FETCH_SETTINGS),
+                store.dispatch(ACTIONS.FETCH_HOME_ACTIONS),
+            ],
+        );
+    },
 };
 </script>

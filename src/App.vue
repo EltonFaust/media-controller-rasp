@@ -5,6 +5,9 @@
 </template>
 
 <style lang="scss">
+$modal-header-padding: 10px;
+$modal-inner-padding: 10px;
+
 @import '~bootstrap/scss/bootstrap.scss';
 @import '~bootstrap-vue/src/index.scss';
 

@@ -9,6 +9,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        isSettingsLoaded: false,
         home: {
             minLines: 2,
             itemsByLine: 3,
