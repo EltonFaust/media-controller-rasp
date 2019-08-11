@@ -1,6 +1,11 @@
 # media-controller-rasp
 
-## Project setup
+## Project setup RaspberryPI
+```
+curl -sL https://raw.githubusercontent.com/EltonFaust/media-controller-rasp/master/scripts/install.sh | sudo -E bash -
+```
+
+## Project setup local
 ```
 npm install
 ```
