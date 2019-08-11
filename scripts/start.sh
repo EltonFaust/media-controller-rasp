@@ -12,6 +12,8 @@ then
     exit 0
 fi
 
+git fetch
+
 HEADHASH=$(git rev-parse HEAD)
 UPSTREAMHASH=$(git rev-parse master@{upstream})
 
@@ -27,3 +29,5 @@ then
 fi
 
 npm run start
+sleep 5
+shutdown -t now
