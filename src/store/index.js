@@ -16,6 +16,7 @@ export default new Vuex.Store({
             showMediaControls: true,
             actions: [],
         },
+        notes: [],
     },
     actions,
     mutations,

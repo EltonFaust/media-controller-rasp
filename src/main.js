@@ -1,6 +1,7 @@
 import { sync } from 'vuex-router-sync';
 import Vue from 'vue';
 import BootstrapVue from 'bootstrap-vue';
+import VueDragscroll from 'vue-dragscroll';
 
 import 'simple-keyboard/build/css/index.css';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
@@ -37,6 +38,7 @@ Vue.mixin({
 Vue.config.productionTip = false;
 
 Vue.use(BootstrapVue);
+Vue.use(VueDragscroll);
 
 sync(store, router);
 

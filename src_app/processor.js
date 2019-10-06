@@ -37,7 +37,7 @@ function listen() {
                 resolve();
             }).catch(reject);
         }).then(() => {
-            event.reply('note-rename-reply', arg.title);
+            event.reply('note-rename-reply');
         }).catch(console.error);
     });
 

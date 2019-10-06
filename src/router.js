@@ -36,6 +36,11 @@ export default new Router({
             name: 'cameras',
             component: () => import(/* webpackChunkName: "page-cameras" */ './views/Cameras.vue'),
         },
+        {
+            path: '/media',
+            name: 'media',
+            component: () => import(/* webpackChunkName: "page-media" */ './views/Media.vue'),
+        },
         // {
         //     path: '/note-drawn',
         //     name: 'note-drawn',

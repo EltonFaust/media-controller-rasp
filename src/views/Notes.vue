@@ -1,10 +1,10 @@
 <template>
-    <div class="notes">
+    <div class="notes" v-dragscroll.y="true">
         <nav-actions>
             <b-link :to="{ name: 'note-drawn' }"><i class="material-icons">note_add</i> Add</b-link>
         </nav-actions>
         <div class="card-columns">
-            <b-card v-for="note of notes" :key="note.id" :title="editingId != note.id ? note.title : ''" :img-src="`../data/note/${note.path}?_t=${note.updated}_`" :ref="`card-${note.id}`" img-alt="Note" img-top tag="article" class="text-white bg-secondary text-center">
+            <b-card v-for="note of $store.state.notes" :key="note.id" :title="editingId != note.id ? note.title : ''" :img-src="`../data/note/${note.path}?_t=${note.updated}_`" :ref="`card-${note.id}`" img-alt="Note" img-top tag="article" class="text-white bg-secondary text-center">
                 <b-card-text  v-if="editingId == note.id">
                     <b-form-group label="Enter a new title" label-for="new-title" :invalid-feedback="renameInvalidFeedback" :state="renameState">
                         <b-form-input v-model="newTitle" :state="renameState" trim></b-form-input>
@@ -15,10 +15,14 @@
                     <i class="material-icons">highlight_remove</i>
                 </b-button>
 
-                <b-link v-if="!editingId" @click="edit(note.id)" href="#" class="text-white card-link">Change title</b-link>
-                <b-link v-if="!editingId" :to="{ name: 'note-edit-drawn', params: { id: note.id } }" class="text-white card-link">Edit note</b-link>
-                <b-link v-if="editingId == note.id" @click="save" :disabled="!renameState" href="#" class="text-white card-link">Save</b-link>
-                <b-link v-if="editingId == note.id" @click="cancel" href="#" class="text-white card-link">Cancel</b-link>
+                <template v-if="!editingId">
+                    <b-link @click="edit(note.id)" href="#" class="text-white card-link">Change title</b-link>
+                    <b-link :to="{ name: 'note-edit-drawn', params: { id: note.id } }" class="text-white card-link">Edit note</b-link>
+                </template>
+                <template v-else-if="editingId == note.id">
+                    <b-link @click="save" :disabled="!renameState" href="#" class="text-white card-link">Save</b-link>
+                    <b-link @click="cancel" href="#" class="text-white card-link">Cancel</b-link>
+                </template>
             </b-card>
         </div>
 
@@ -81,12 +85,12 @@
 
 <script>
 import Keyboard from 'simple-keyboard';
+import { ACTIONS } from '@/store/_types';
 
 export default {
     name: 'notes',
     data() {
         return {
-            notes: [],
             newTitle: '',
             editingId: null,
             removingId: null,
@@ -111,7 +115,7 @@ export default {
         removingNote() {
             let removingNote = null;
 
-            this.notes.some((note) => {
+            this.$store.state.notes.some((note) => {
                 if (this.removingId === note.id) {
                     removingNote = note;
                     return true;
@@ -120,14 +124,13 @@ export default {
                 return false;
             });
 
-
             return removingNote;
         },
     },
     methods: {
         edit(noteId) {
             this.editingId = noteId;
-            this.newTitle = this.notes.find(({ id }) => id === this.editingId).title;
+            this.newTitle = this.$store.state.notes.find(({ id }) => id === this.editingId).title;
 
             this.keyboardInstace = new Keyboard({
                 onChange: (input) => {
@@ -207,17 +210,9 @@ export default {
             });
         },
         save() {
-            window.ipcRenderer.once('note-rename-reply', (event, newTitle) => {
-                const editIdx = this.notes.findIndex(({ id }) => id === this.editingId);
-
-                if (editIdx !== -1) {
-                    this.$set(this.notes[editIdx], 'title', newTitle);
-                }
-
+            this.$store.dispatch(ACTIONS.RENAME_NOTE, { editId: this.editingId, newTitle: this.newTitle }).then(() => {
                 this.cancel();
             });
-
-            window.ipcRenderer.send('note-rename', { id: this.editingId, title: this.newTitle });
         },
         cancel() {
             this.keyboardInstace.destroy();
@@ -232,25 +227,13 @@ export default {
         remove(event) {
             event.preventDefault();
 
-            window.ipcRenderer.once('note-remove-reply', () => {
-                const rmIdx = this.notes.findIndex(({ id }) => id === this.removingId);
-
-                if (rmIdx !== -1) {
-                    this.$delete(this.notes, rmIdx);
-                }
-
+            this.$store.dispatch(ACTIONS.REMOVE_NOTE, this.removingId).then(() => {
                 this.$bvModal.hide('modal-remove-note');
             });
-
-            window.ipcRenderer.send('note-remove', this.removingId);
         },
     },
-    mounted() {
-        window.ipcRenderer.once('note-list-drawns-reply', (event, notes) => {
-            this.notes = notes;
-        });
-
-        window.ipcRenderer.send('note-list-drawns');
+    asyncData({ store }) {
+        return store.dispatch(ACTIONS.FETCH_NOTES);
     },
 };
 </script>

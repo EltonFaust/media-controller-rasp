@@ -6,7 +6,8 @@
             <div class="line-options text-center">
                 <div class="line-colors">
                     <div class="colors-container">
-                        <div v-for="(colorItem, colorName) of colors" :key="colorName" class="color-item">
+                        <div v-for="(colorItem, colorName) of colors" :key="colorName" class="color-item"
+                            v-bind:class="{'color-selected': colorName == color}">
                             <div @click="selectColor(colorName)" class="color-select"
                                 v-bind:style="{'background-color': `rgb(${colorItem.join(', ')})`}">
                             </div>
@@ -71,9 +72,13 @@
                         flex: 1;
 
                         .color-item {
-                            padding: 0 2px;
+                            border: 2px solid transparent;
                             display: inline-block;
                             vertical-align: middle;
+
+                            &.color-selected {
+                                border-color: rgb(140, 255, 210);
+                            }
 
                             .color-select {
                                 height: 20px;
