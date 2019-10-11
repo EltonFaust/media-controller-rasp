@@ -1,7 +1,6 @@
 import Vue from 'vue';
 
-import { MUTATIONS } from './_types';
-// import { ACTION_MODES, MUTATIONS } from './_types';
+import { ACTION_MODES, MUTATIONS } from './_types';
 
 export default {
     [MUTATIONS.SET_SETTINGS]: (state, config) => {
@@ -15,6 +14,14 @@ export default {
 
     [MUTATIONS.SET_NOTES]: (state, notes) => {
         state.notes = notes;
+    },
+
+    [MUTATIONS.ADD_NOTE]: (state, { note, mode }) => {
+        if (mode === ACTION_MODES.PREPEND_DATA) {
+            state.notes.unshift(note);
+        } else if (mode === ACTION_MODES.APPEND_DATA) {
+            state.notes.push(note);
+        }
     },
 
     [MUTATIONS.SET_NOTE_NAME]: (state, { editId, newTitle }) => {

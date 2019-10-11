@@ -18,6 +18,7 @@
                 <template v-if="!editingId">
                     <b-link @click="edit(note.id)" href="#" class="text-white card-link">Change title</b-link>
                     <b-link :to="{ name: 'note-edit-drawn', params: { id: note.id } }" class="text-white card-link">Edit note</b-link>
+                    <b-link @click="duplicate(note.id)" class="text-white card-link">Duplicate</b-link>
                 </template>
                 <template v-else-if="editingId == note.id">
                     <b-link @click="save" :disabled="!renameState" href="#" class="text-white card-link">Save</b-link>
@@ -229,6 +230,11 @@ export default {
 
             this.$store.dispatch(ACTIONS.REMOVE_NOTE, this.removingId).then(() => {
                 this.$bvModal.hide('modal-remove-note');
+            });
+        },
+        duplicate(id) {
+            this.$store.dispatch(ACTIONS.DUPLICATE_NOTE, id).then(() => {
+                window.scrollTo(0, 0);
             });
         },
     },

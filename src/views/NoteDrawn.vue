@@ -112,6 +112,7 @@
 
 <script>
 import * as CanvasFreeDrawing from 'canvas-free-drawing';
+import { ACTIONS } from '@/store/_types';
 
 export default {
     name: 'note-drawn',
@@ -255,20 +256,11 @@ export default {
             }
         },
         save() {
-            // window.test();
-            // console.log(window.ipcRenderer.sendSync('synchronous-message', 'ping'));
-
-            // window.ipcRenderer.on('drawn-save-reply', (event, arg) => {
-            //     this.discardChanges();
-            // });
-
             this.buttonBlock = true;
 
-            window.ipcRenderer.once('note-drawn-save-reply', () => {
+            this.$store.dispatch(ACTIONS.SAVE_NOTE, { id: this.$route.params.id, content: this.drawn.save() }).then(() => {
                 this.discardChanges();
             });
-
-            window.ipcRenderer.send('note-drawn-save', { id: this.$route.params.id, content: this.drawn.save() });
         },
     },
 };

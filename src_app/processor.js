@@ -101,6 +101,32 @@ function listen() {
         }).catch(console.error);
     });
 
+    ipcMain.on('note-drawn-duplicate', (event, id) => {
+        new Promise((resolve, reject) => {
+            const updated = new Date().toISOString();
+
+            db.get('SELECT * FROM note WHERE id = ?', id).then((note) => {
+                const filePath = `${md5(`${updated}>>copyof>>${note.path}`)}.png`;
+
+                fs.copyFileSync(
+                    path.resolve('.', 'data', 'note', note.path),
+                    path.resolve('.', 'data', 'note', filePath),
+                );
+
+                db.run(
+                    'INSERT INTO note(title, path, created, updated) VALUES(?, ?, ?, ?)',
+                    `Copy of ${note.title}`, filePath, updated, updated,
+                ).then((stmt) => {
+                    db.get('SELECT * FROM note WHERE id = ?', stmt.lastID).then((note) => {
+                        resolve(note);
+                    }).catch(reject);
+                }).catch(reject);
+            }).catch(reject);
+        }).then((note) => {
+            event.reply('note-drawn-duplicate-reply', note);
+        }).catch(console.error);
+    });
+
     ipcMain.on('note-remove', (event, id) => {
         new Promise((resolve, reject) => {
             db.get('SELECT path FROM note WHERE id = ?', id).then((note) => {
