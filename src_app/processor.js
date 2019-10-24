@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const { ipcMain } = require('electron');
 const sqlite = require('sqlite');
-const md5 = require('md5');
+const uuid = require('uuid/v4');
 
 async function prepare() {
     db = await sqlite.open(path.resolve(__dirname, '..', 'data', 'db.sqlite'), { Promise });
@@ -65,7 +65,7 @@ function listen() {
             const updated = new Date().toISOString();
 
             if (!arg.id) {
-                const filePath = `${md5(`${updated}>>${arg.content}`)}.png`;
+                const filePath = `${uuid()}.png`;
 
                 fs.writeFileSync(
                     path.resolve('.', 'data', 'note', filePath),
@@ -106,7 +106,7 @@ function listen() {
             const updated = new Date().toISOString();
 
             db.get('SELECT * FROM note WHERE id = ?', id).then((note) => {
-                const filePath = `${md5(`${updated}>>copyof>>${note.path}`)}.png`;
+                const filePath = `${uuid()}.png`;
 
                 fs.copyFileSync(
                     path.resolve('.', 'data', 'note', note.path),
