@@ -1,9 +1,15 @@
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 const { ipcMain } = require('electron');
 const sqlite = require('sqlite');
 const uuid = require('uuid/v4');
+const express = require('express');
+
+let expressServer;
+let expressServerHandler;
+const serverAddressList = [];
 
 async function prepare() {
     db = await sqlite.open(path.resolve(__dirname, '..', 'data', 'db.sqlite'), { Promise });
@@ -141,18 +147,84 @@ function listen() {
         }).catch(console.error);
     });
 
+    ipcMain.on('media-server-start', (event) => {
+        (() => {
+            if (expressServer) {
+                return Promise.resolve();
+            }
+
+            expressServer = express();
+
+            return new Promise((resolve) => {
+                expressServer.get('/configure', (req, res) => {
+                    res.send('Hello World!');
+                });
+
+                expressServer.post('/configure', (req, res) => {
+                    res.send('Hello World!');
+                });
+
+                expressServer.get('/add-torrent', (req, res) => {
+                    res.send('Hello World!');
+                });
+
+                expressServer.post('/add-torrent', (req, res) => {
+                    res.send('Hello World!');
+                });
+
+                expressServerHandler = expressServer.listen(8000, () => {
+                    resolve();
+                });
+            });
+        })().then(() => {
+            if (serverAddressList.length === 0) {
+                const ifaces = os.networkInterfaces();
+
+                Object.values(ifaces).forEach((ifaceList) => {
+                    ifaceList.forEach(({ family, internal, address }) => {
+                        if ('IPv4' !== family || internal !== false) {
+                            return;
+                        }
+
+                        serverAddressList.push(address);
+                    });
+                });
+            }
+
+            event.reply('media-server-start-reply', serverAddressList);
+        });
+    });
+
+    ipcMain.on('media-server-close', (event, arg) => {
+        (() => {
+            if (!expressServer || !expressServerHandler) {
+                return Promise.resolve();
+            }
+
+            return new Promise((resolve) => {
+                expressServerHandler.close(() => {
+                    expressServer = null;
+                    expressServerHandler = null;
+                    resolve();
+                });
+            });
+        })().then(() => {
+            event.reply('media-server-close-reply');
+        });
+    });
+
     // ipcMain.on('asynchronous-message', (event, arg) => {
     //     console.log(arg) // prints "ping"
     //     event.reply('asynchronous-reply', 'pong')
-    // })
+    // });
 
     // ipcMain.on('synchronous-message', (event, arg) => {
     //     console.log(arg) // prints "ping"
     //     event.returnValue = 'pong'
-    // })
+    // });
 }
 
 module.exports = {
     prepare,
-    listen
+    listen,
 };

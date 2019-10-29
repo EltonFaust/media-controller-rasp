@@ -17,6 +17,9 @@ export default new Vuex.Store({
             actions: [],
         },
         notes: [],
+        media: {
+            serverAddress: [],
+        },
     },
     actions,
     mutations,

@@ -2,6 +2,7 @@
 import { ACTIONS, ACTION_MODES, MUTATIONS } from './_types';
 
 export default {
+    // ------------ SETTINGS ------------
     [ACTIONS.FETCH_SETTINGS]: ({ commit, state }) => new Promise((resolve) => {
         if (state.isSettingsLoaded) {
             resolve();
@@ -22,6 +23,7 @@ export default {
         resolve();
     }),
 
+    // ------------ NOTES ------------
     [ACTIONS.FETCH_NOTES]: ({ commit }) => new Promise((resolve) => {
         window.ipcRenderer.once('note-list-drawns-reply', (event, notes) => {
             commit(MUTATIONS.SET_NOTES, notes);
@@ -60,5 +62,15 @@ export default {
         });
 
         window.ipcRenderer.send('note-remove', removeId);
+    }),
+
+    // ------------ MEDIA ------------
+    [ACTIONS.START_MEDIA_SERVER]: ({ commit }) => new Promise((resolve) => {
+        window.ipcRenderer.once('media-server-start-reply', (event, addresses) => {
+            commit(MUTATIONS.SET_MEDIA_SERVER_ADDRESS, addresses);
+            resolve();
+        });
+
+        window.ipcRenderer.send('media-server-start');
     }),
 };

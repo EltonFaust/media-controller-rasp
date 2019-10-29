@@ -39,4 +39,9 @@ export default {
             Vue.delete(state.notes, rmIdx);
         }
     },
+
+    // ------------ MEDIA ------------
+    [MUTATIONS.SET_MEDIA_SERVER_ADDRESS]: (state, addresses) => {
+        Vue.set(state.media, 'serverAddress', addresses);
+    },
 };

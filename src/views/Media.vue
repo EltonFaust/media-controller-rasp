@@ -5,6 +5,7 @@
             <img :src="qrCodeSrc"/>
             <hr>
             Configure
+            <button class="btn" @click="startServer">aaa</button>
             <hr>
 
         </div>
@@ -20,6 +21,7 @@
 <script>
 import * as QRCode from 'qrcode';
 // import * as PlexAPI from 'plex-api';
+import { ACTIONS } from '@/store/_types';
 
 export default {
     name: 'media',
@@ -28,10 +30,19 @@ export default {
             qrCodeSrc: null,
         };
     },
+    methods: {
+        startServer() {
+            this.$store.dispatch(ACTIONS.START_MEDIA_SERVER).then(() => {
+                QRCode.toDataURL('http://localhost:8888', { errorCorrectionLevel: 'H', width: 180 }, (err, url) => {
+                    this.qrCodeSrc = url;
+                });
+            });
+        },
+    },
     mounted() {
-        QRCode.toDataURL('http://localhost:8888', { errorCorrectionLevel: 'H', width: 180 }, (err, url) => {
-            this.qrCodeSrc = url;
-        });
+        // QRCode.toDataURL('http://localhost:8888', { errorCorrectionLevel: 'H', width: 180 }, (err, url) => {
+        //     this.qrCodeSrc = url;
+        // });
 
         // const client = new PlexAPI({
         //     hostname: 'localhost',

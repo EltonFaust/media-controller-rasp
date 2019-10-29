@@ -16,6 +16,7 @@
     "bootstrap-vue": "^2.0.0-rc.27",
     "canvas-free-drawing": "^2.0.4",
     "core-js": "^2.6.5",
+    "express": "^4.17.1",
     "jquery": "^3.4.1",
     "material-design-icons-iconfont": "^5.0.1",
     "plex-api": "^5.2.5",
