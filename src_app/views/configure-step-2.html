@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Configure Plex</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+        <style type="text/css">
+            body {
+                padding-top: 40px;
+                padding-bottom: 40px;
+                background-color: #eee;
+            }
+
+            .form-configure {
+                max-width: 350px;
+                padding: 15px;
+                margin: 0 auto;
+            }
+            .form-configure .form-configure-heading,
+            .form-configure .checkbox {
+                margin-bottom: 10px;
+            }
+            .form-configure .checkbox {
+                font-weight: 400;
+            }
+            .form-configure .form-control {
+                position: relative;
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+                height: auto;
+                padding: 10px;
+                font-size: 16px;
+            }
+            .form-configure .form-control:focus {
+                z-index: 2;
+            }
+            .form-configure input[type="email"] {
+                margin-bottom: -1px;
+                border-bottom-right-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+            .form-configure input[type="password"] {
+                margin-bottom: 10px;
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+            }
+            .form-configure input[type="text"] {
+                /*margin: 10px 0;*/
+            }
+
+            .content-split {
+                display: flex;align-items: center;
+            }
+            .content-split > *:nth-child(1),
+            .content-split > *:nth-child(3) {
+                flex: 1;height: 1px;background-color: #ccc;
+            }
+            .content-split > *:nth-child(2) {
+                padding: 0 10px;color: #aaa;
+            }
+        </style>
+        <script type="text/javascript">
+            $(() => {
+                const data = {/*{{data}}*/};
+
+                if (data.dir.movies) {
+                    $('input[name="movies-dir"]').val(data.dir.movies);
+                } else {
+                    $('input[name="movies-dir"]').prop('readonly', false);
+                }
+
+                if (data.dir.shows) {
+                    $('input[name="shows-dir"]').val(data.dir.shows);
+                } else {
+                    $('input[name="shows-dir"]').prop('readonly', false);
+                }
+
+                const matchError = window.location.search.match(/(\?|&)error=(?<msg>[^&]+)/);
+
+                if (matchError) {
+                    $('#error-msg').html(decodeURIComponent(matchError.groups.msg)).css('display', '');
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <div class="container text-center">
+            <div id="error-msg" class="alert alert-danger" style="display: none;margin: 0 auto;max-width: 500px;"></div>
+
+            <form class="form-configure" method="POST" action="/configure/step-2">
+                <h2 class="form-configure-heading">Configure step 2</h2>
+
+                <div class="form-group">
+                    <label for="movies-dir">Movies directory name</label>
+                    <input type="textl" name="movies-dir" class="form-control" placeholder="Movies dir" readonly="readonly">
+                </div>
+
+                <div class="form-group">
+                    <label for="shows-dir">Shows directory name</label>
+                    <input type="text" name="shows-dir" class="form-control" placeholder="Shows dir" readonly="readonly">
+                </div>
+
+                <div class="content-split">
+                    <div></div><div>Subtitles</div><div></div>
+                </div>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label for="token">Auto download subtitles</label>
+                    <select name="token" class="form-control">
+                        <option value="none">Don't download</option>
+                        <option value="pt-br">Português (pt-BR)</option>
+                        <option value="es">Español (es)</option>
+                        <option value="fr">Français (fr)</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-lg btn-warning btn-block" type="submit">Conclude</button>
+
+                <div style="padding-top: 15px;">
+                    Need to create an account?
+                    <a href="https://www.plex.tv/sign-up/" target="_blank" rel="noopener">Sign Up</a>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>
