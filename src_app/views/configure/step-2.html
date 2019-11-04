@@ -5,68 +5,14 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" rel="icon" type="image/x-icon" />
 
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="/assets/css/configuration.css">
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
 
-        <style type="text/css">
-            body {
-                padding-top: 40px;
-                padding-bottom: 40px;
-                background-color: #eee;
-            }
-
-            .form-configure {
-                max-width: 350px;
-                padding: 15px;
-                margin: 0 auto;
-            }
-            .form-configure .form-configure-heading,
-            .form-configure .checkbox {
-                margin-bottom: 10px;
-            }
-            .form-configure .checkbox {
-                font-weight: 400;
-            }
-            .form-configure .form-control {
-                position: relative;
-                -webkit-box-sizing: border-box;
-                -moz-box-sizing: border-box;
-                box-sizing: border-box;
-                height: auto;
-                padding: 10px;
-                font-size: 16px;
-            }
-            .form-configure .form-control:focus {
-                z-index: 2;
-            }
-            .form-configure input[type="email"] {
-                margin-bottom: -1px;
-                border-bottom-right-radius: 0;
-                border-bottom-left-radius: 0;
-            }
-            .form-configure input[type="password"] {
-                margin-bottom: 10px;
-                border-top-left-radius: 0;
-                border-top-right-radius: 0;
-            }
-            .form-configure input[type="text"] {
-                /*margin: 10px 0;*/
-            }
-
-            .content-split {
-                display: flex;align-items: center;
-            }
-            .content-split > *:nth-child(1),
-            .content-split > *:nth-child(3) {
-                flex: 1;height: 1px;background-color: #ccc;
-            }
-            .content-split > *:nth-child(2) {
-                padding: 0 10px;color: #aaa;
-            }
-        </style>
         <script type="text/javascript">
             $(() => {
                 const data = {/*{{data}}*/};
@@ -82,6 +28,16 @@
                 } else {
                     $('input[name="shows-dir"]').prop('readonly', false);
                 }
+
+                $('select[name="sub-locale"]').change((evt) => {
+                    const subValue = $(evt.target).val();
+
+                    if (subValue === 'none') {
+                        $('#sub-info').hide();
+                    } else {
+                        $('#sub-info').show();
+                    }
+                });
 
                 const matchError = window.location.search.match(/(\?|&)error=(?<msg>[^&]+)/);
 
@@ -100,12 +56,12 @@
 
                 <div class="form-group">
                     <label for="movies-dir">Movies directory name</label>
-                    <input type="textl" name="movies-dir" class="form-control" placeholder="Movies dir" readonly="readonly">
+                    <input type="text" name="movies-dir" class="form-control" placeholder="Movies dir" readonly required>
                 </div>
 
                 <div class="form-group">
                     <label for="shows-dir">Shows directory name</label>
-                    <input type="text" name="shows-dir" class="form-control" placeholder="Shows dir" readonly="readonly">
+                    <input type="text" name="shows-dir" class="form-control" placeholder="Shows dir" readonly required>
                 </div>
 
                 <div class="content-split">
@@ -113,21 +69,41 @@
                 </div>
 
                 <div class="form-group" style="margin-top: 10px;">
-                    <label for="token">Auto download subtitles</label>
-                    <select name="token" class="form-control">
-                        <option value="none">Don't download</option>
+                    <label for="sub-locale">Auto download subtitles</label>
+                    <select name="sub-locale" class="form-control">
+                        <option value="">Don't download</option>
                         <option value="pt-br">Português (pt-BR)</option>
                         <option value="es">Español (es)</option>
                         <option value="fr">Français (fr)</option>
                     </select>
                 </div>
 
-                <button class="btn btn-lg btn-warning btn-block" type="submit">Conclude</button>
+                <div id="sub-info" style="display: none;">
+                    <div class="content-split">
+                        <div></div><div>OpenSubtitles</div><div></div>
+                    </div>
 
-                <div style="padding-top: 15px;">
-                    Need to create an account?
-                    <a href="https://www.plex.tv/sign-up/" target="_blank" rel="noopener">Sign Up</a>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label for="opensub-username" class="sr-only">Username</label>
+                        <input type="text" name="opensub-username" class="form-control username" placeholder="Username">
+                        <label for="opensub-password" class="sr-only">Password</label>
+                        <input type="password" name="opensub-password" class="form-control" placeholder="Password">
+                    </div>
+
+                    <div>
+                        Need to create an account?
+                        <a href="https://www.opensubtitles.org/newuser" target="_blank" rel="noopener">Sign Up</a>
+                    </div>
+
+                    <div style="margin: 10px 0; color: #888;">
+                        * Credentials for OpenSubtitles are not required,
+                        and if it isn't set or the subtitle for a file is not found,
+                        the <a href="http://thesubdb.com/" target="_blank" rel="noopener" style="color: #888;font-weight: bold;">SubDB</a>
+                        will be used to lookup for subtitles.
+                    </div>
                 </div>
+
+                <button class="btn btn-lg btn-warning btn-block" type="submit">Conclude</button>
             </form>
         </div>
     </body>

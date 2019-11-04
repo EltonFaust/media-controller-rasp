@@ -3,9 +3,15 @@ const fs = require('fs');
 const os = require('os');
 
 const uuid = require('uuid/v4');
+const MD5 = require('md5.js');
 const express = require('express');
 const PlexAPI = require('plex-api');
 const PlexCredentials = require('plex-api-credentials');
+const OpenSubtitlesAPI = require('opensubtitles-api');
+
+const projectInfo = require('../../package.json');
+const projectName = projectInfo.name.split('-').map((v) => `${v.charAt(0).toUpperCase()}${v.slice(1)}`).join('');
+const projectVersion = projectInfo.version;
 
 let expressServer;
 let expressServerHandler;
@@ -13,15 +19,16 @@ const serverAddressList = [];
 
 let plexClient;
 let plexDirectories;
+let openSubtitlesClient;
 
-const resolveViewFile = (view) => path.resolve(__dirname, '..', 'views', view);
+const resolveViewFile = (...view) => path.resolve(__dirname, '..', 'views', ...view);
 
-const getLibrarySections = () => {
+const getLibrarySections = (reuse) => {
     if (!plexClient) {
         throw new Error('Plex client not defined');
     }
 
-    if (plexDirectories) {
+    if (reuse && plexDirectories) {
         return Promise.resolve(plexDirectories);
     }
 
@@ -41,10 +48,6 @@ const getLibrarySections = () => {
                 }
             }
 
-
-            // directories type would be "movie" OR "shows"
-            // console.log(result.MediaContainer);
-
             resolve(plexDirectories);
         });
     });
@@ -59,11 +62,13 @@ const serverOpen = () => {
 
             expressServer = express();
 
+            expressServer.use('/assets', express.static(path.resolve(__dirname, '..', 'assets')));
+
             expressServer.use(express.json());
             expressServer.use(express.urlencoded({ extended: true }));
 
             expressServer.get('/configure', (req, res) => {
-                res.sendFile(resolveViewFile(`configure.html`));
+                res.sendFile(resolveViewFile('configure', 'step-1.html'));
             });
 
             expressServer.post('/configure', (req, res) => {
@@ -74,8 +79,8 @@ const serverOpen = () => {
                         hostname: '127.0.0.1',
                         options: {
                             identifier: plexSessionIdentifier,
-                            product: 'RaspMediaController',
-                            version: require('../../package.json').version,
+                            product: projectName,
+                            version: projectVersion,
                         },
                     };
 
@@ -83,7 +88,6 @@ const serverOpen = () => {
                     let { token } = req.body;
 
                     if (token) {
-                        // plexConfig.username = username;
                         plexConfig.token = token;
                     } else if (username && password) {
                         plexConfig.username = username;
@@ -116,7 +120,6 @@ const serverOpen = () => {
 
             expressServer.get('/configure/step-2', (req, res) => {
                 getLibrarySections().then((directories) => {
-                    console.log(directories);
 
                     const data = {
                         dir: {
@@ -125,22 +128,79 @@ const serverOpen = () => {
                         },
                     };
 
-                    const view = fs.readFileSync(resolveViewFile(`configure-step-2.html`))
+                    const view = fs.readFileSync(resolveViewFile('configure', 'step-2.html'))
                         .toString('UTF-8').replace(/\{\/\*\{\{data\}\}\*\/\}/, JSON.stringify(data));
 
-                    // res.sendFile(resolveViewFile(`configure-step-2.html`));
                     res.send(view);
                 });
-
             });
 
             expressServer.post('/configure/step-2', (req, res) => {
+                const moviesDir = req.body['movies-dir'];
+                const showsDir = req.body['shows-dir'];
+                const subLocale = req.body['sub-locale'];
+                const opensubUsername = req.body['opensub-username'];
+                let opensubPassword = req.body['opensub-password'];
+
+                new Promise((resolve, reject) => {
+                    getLibrarySections().then((directories) => {
+                        console.log(directories);
+
+                        if (!directories.movies && (!moviesDir || moviesDir.length < 3)) {
+                            return reject(new Error('Movies directory name is required!'));
+                        }
+
+                        if (!directories.shows && (!showsDir || showsDir.length < 3)) {
+                            return reject(new Error('Shows directory name is required!'));
+                        }
+
+                        (() => {
+                            if (!subLocale || !opensubUsername || !opensubPassword) {
+                                return Promise.resolve();
+                            }
+
+                            return new Promise((resolve) => {
+                                opensubPassword = new MD5().update(opensubPassword).digest('hex');
+
+                                openSubtitlesClient = new OpenSubtitlesAPI({
+                                    useragent: 'TemporaryUserAgent',
+                                    // useragent: `${projectName} v1.0`,
+                                    username: opensubUsername,
+                                    password: opensubPassword,
+                                });
+
+                                openSubtitlesClient.login().then((res) => {
+                                    console.log('Logged in on OpenSubtitles');
+                                    console.log(res.userinfo);
+                                    resolve();
+                                }).catch(err => reject(new Error(`Can't connect to OpenSubtitles: ${err.message}`)));
+                            });
+                        })().then(() => {
+                            resolve();
+                        });
+                    });
+                }).then(() => {
+                    res.send('Hello World!');
+                }).catch((e) => {
+                    res.redirect(`/configure/step-2?error=${encodeURIComponent(e.message)}`);
+                });
+
+                // const { username, password } = req.body;
 
                 // name: Filmes 2
                 // type: movie
                 // agent: com.plexapp.agents.imdb
                 // scanner: Plex Movie Scanner
-                // language: pt
+                // language: en
+                // importFromiTunes:
+                // enableAutoPhotoTags:
+                // location: /home/elton/Público
+
+                // name: Series
+                // type: show
+                // agent: com.plexapp.agents.thetvdb
+                // scanner: Plex Series Scanner
+                // language: en
                 // importFromiTunes:
                 // enableAutoPhotoTags:
                 // location: /home/elton/Público
