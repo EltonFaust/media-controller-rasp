@@ -20,6 +20,12 @@
         </style>
         <script type="text/javascript">
             $(() => {
+                const data = {/*{{data}}*/};
+
+                if (data.savedToken) {
+                    $('input[name="token"]').val(data.savedToken);
+                }
+
                 const matchError = window.location.search.match(/(\?|&)error=(?<msg>[^&]+)/);
 
                 if (matchError) {

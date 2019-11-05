@@ -9,6 +9,9 @@ const PlexAPI = require('plex-api');
 const PlexCredentials = require('plex-api-credentials');
 const OpenSubtitlesAPI = require('opensubtitles-api');
 
+const settingsService = require('../services/settings');
+const SETTINGS = settingsService.keys;
+
 const projectInfo = require('../../package.json');
 const projectName = projectInfo.name.split('-').map((v) => `${v.charAt(0).toUpperCase()}${v.slice(1)}`).join('');
 const projectVersion = projectInfo.version;
@@ -68,7 +71,12 @@ const serverOpen = () => {
             expressServer.use(express.urlencoded({ extended: true }));
 
             expressServer.get('/configure', (req, res) => {
-                res.sendFile(resolveViewFile('configure', 'step-1.html'));
+                settingsService.get(SETTINGS.PLEX_TOKEN).then((savedToken) => {
+                    const view = fs.readFileSync(resolveViewFile('configure', 'step-1.html'))
+                        .toString('UTF-8').replace(/\{\/\*\{\{data\}\}\*\/\}/, JSON.stringify({ savedToken }));
+
+                    res.send(view);
+                });
             });
 
             expressServer.post('/configure', (req, res) => {
@@ -107,7 +115,7 @@ const serverOpen = () => {
 
                     plexClient.query('/').then((result) => {
                         console.log("%s running Plex Media Server v%s", result.MediaContainer.friendlyName, result.MediaContainer.version);
-                        resolve();
+                        settingsService.set(SETTINGS.PLEX_TOKEN, token).then(resolve);
                     }).catch((e) => {
                         reject(e);
                     });
@@ -160,20 +168,31 @@ const serverOpen = () => {
                             }
 
                             return new Promise((resolve) => {
-                                opensubPassword = new MD5().update(opensubPassword).digest('hex');
+                                settingsService.set(SETTINGS.SUBTITLES_LOCALE, subLocale).then(() => {
+                                    if (opensubUsername && opensubPassword) {
+                                        opensubPassword = new MD5().update(opensubPassword).digest('hex');
 
-                                openSubtitlesClient = new OpenSubtitlesAPI({
-                                    useragent: 'TemporaryUserAgent',
-                                    // useragent: `${projectName} v1.0`,
-                                    username: opensubUsername,
-                                    password: opensubPassword,
+                                        openSubtitlesClient = new OpenSubtitlesAPI({
+                                            useragent: `${projectName} v1.0`,
+                                            username: opensubUsername,
+                                            password: opensubPassword,
+                                        });
+
+                                        openSubtitlesClient.login().then((res) => {
+                                            console.log('Logged in on OpenSubtitles');
+                                            console.log(res.userinfo);
+
+                                            Promise.all(
+                                                [
+                                                    settingsService.set(SETTINGS.OS_USERNAME, opensubUsername),
+                                                    settingsService.set(SETTINGS.OS_PASSWORD, opensubPassword),
+                                                ]
+                                            ).then(resolve);
+                                        }).catch(err => reject(new Error(`Can't connect to OpenSubtitles: ${err.message}`)));
+                                    } else {
+                                        resolve();
+                                    }
                                 });
-
-                                openSubtitlesClient.login().then((res) => {
-                                    console.log('Logged in on OpenSubtitles');
-                                    console.log(res.userinfo);
-                                    resolve();
-                                }).catch(err => reject(new Error(`Can't connect to OpenSubtitles: ${err.message}`)));
                             });
                         })().then(() => {
                             resolve();

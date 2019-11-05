@@ -4,12 +4,17 @@ const fs = require('fs');
 const { ipcMain } = require('electron');
 const sqlite = require('sqlite');
 const uuid = require('uuid/v4');
+const settingsService = require('./services/settings');
+
+let db;
 
 const mediaListener = require('./listeners/media');
 
 async function prepare() {
     db = await sqlite.open(path.resolve(__dirname, '..', 'data', 'db.sqlite'), { Promise });
     await sqlite.migrate();
+
+    settingsService.use(db);
 }
 
 function listen() {
