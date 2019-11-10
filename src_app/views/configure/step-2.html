@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Configure Plex</title>
+        <title>Configure Plex Server</title>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,6 +17,37 @@
             $(() => {
                 const data = {/*{{data}}*/};
 
+                var saveToSelect = $('select[name="save-to"]');
+
+                Object.values(data.dirs).forEach((d) => {
+                    saveToSelect.append(`<option value="${d.mount}">${d.label}</option>`);
+                });
+
+                $('select[name="sub-locale"]').change((evt) => {
+                    const subValue = $(evt.target).val();
+
+                    if (subValue === '') {
+                        $('#sub-info').hide();
+                    } else {
+                        $('#sub-info').show();
+                    }
+                });
+
+                $(':checkbox[name="use-saved-opensub"]').change((evt) => {
+                    const isChecked = $(evt.target).is(':checked');
+                    $('#opensubtitles-chedentials')[isChecked ? 'hide' : 'show']();
+                });
+
+                $('select[name="sub-locale"]').change((evt) => {
+                    const subValue = $(evt.target).val();
+
+                    if (subValue === '') {
+                        $('#sub-info').hide();
+                    } else {
+                        $('#sub-info').show();
+                    }
+                });
+
                 if (data.dir.movies) {
                     $('input[name="movies-dir"]').val(data.dir.movies);
                 } else {
@@ -29,15 +60,19 @@
                     $('input[name="shows-dir"]').prop('readonly', false);
                 }
 
-                $('select[name="sub-locale"]').change((evt) => {
-                    const subValue = $(evt.target).val();
+                if (!data.dir.movies || !data.dir.shows) {
+                    saveToSelect.closest('form-group').show();
+                }
 
-                    if (subValue === 'none') {
-                        $('#sub-info').hide();
-                    } else {
-                        $('#sub-info').show();
-                    }
-                });
+                if (data.osUsername) {
+                    $(':checkbox[name="use-saved-opensub"]').prop('checked', true).closest('.checkbox').show();
+                    $('input[name="opensub-username"]').val(data.osUsername)
+                    $('#opensubtitles-chedentials').hide();
+                }
+
+                if (data.subLocale) {
+                    $('select[name="sub-locale"]').val(data.subLocale).change();
+                }
 
                 const matchError = window.location.search.match(/(\?|&)error=(?<msg>[^&]+)/);
 
@@ -53,6 +88,11 @@
 
             <form class="form-configure" method="POST" action="/configure/step-2">
                 <h2 class="form-configure-heading">Configure step 2</h2>
+
+                <div class="form-group" style="display: none;">
+                    <label for="save-to">Save files to</label>
+                    <select name="save-to" class="form-control"></select>
+                </div>
 
                 <div class="form-group">
                     <label for="movies-dir">Movies directory name</label>
@@ -83,23 +123,32 @@
                         <div></div><div>OpenSubtitles</div><div></div>
                     </div>
 
-                    <div class="form-group" style="margin-top: 10px;">
-                        <label for="opensub-username" class="sr-only">Username</label>
-                        <input type="text" name="opensub-username" class="form-control username" placeholder="Username">
-                        <label for="opensub-password" class="sr-only">Password</label>
-                        <input type="password" name="opensub-password" class="form-control" placeholder="Password">
+                    <div class="checkbox" style="display: none;">
+                        <label>
+                            <input type="hidden" name="use-saved-opensub" value="0">
+                            <input type="checkbox" name="use-saved-opensub" value="1"> Use saved OpenSubtitles credentials
+                        </label>
                     </div>
 
-                    <div>
-                        Need to create an account?
-                        <a href="https://www.opensubtitles.org/newuser" target="_blank" rel="noopener">Sign Up</a>
-                    </div>
+                    <div id="opensubtitles-chedentials">
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label for="opensub-username" class="sr-only">Username</label>
+                            <input type="text" name="opensub-username" class="form-control username" placeholder="Username">
+                            <label for="opensub-password" class="sr-only">Password</label>
+                            <input type="password" name="opensub-password" class="form-control" placeholder="Password">
+                        </div>
 
-                    <div style="margin: 10px 0; color: #888;">
-                        * Credentials for OpenSubtitles are not required,
-                        and if it isn't set or the subtitle for a file is not found,
-                        the <a href="http://thesubdb.com/" target="_blank" rel="noopener" style="color: #888;font-weight: bold;">SubDB</a>
-                        will be used to lookup for subtitles.
+                        <div>
+                            Need to create an account?
+                            <a href="https://www.opensubtitles.org/newuser" target="_blank" rel="noopener">Sign Up</a>
+                        </div>
+
+                        <div style="margin: 10px 0; color: #888;">
+                            * Credentials for OpenSubtitles are not required,
+                            and if it isn't set or the subtitle for a file is not found,
+                            the <a href="http://thesubdb.com/" target="_blank" rel="noopener" style="color: #888;font-weight: bold;">SubDB</a>
+                            will be used to lookup for subtitles.
+                        </div>
                     </div>
                 </div>
 

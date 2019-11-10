@@ -40,7 +40,7 @@ const get = (...types) => {
                 return resolve(typeof results !== 'undefined' ? results.value : undefined);
             }
 
-            resolve(...(results.map(result => typeof result !== 'undefined' ? result.value : undefined)));
+            resolve(results.map(result => typeof result !== 'undefined' ? result.value : undefined));
         });
     });
 };
@@ -56,15 +56,21 @@ const set = (type, value) => {
 
             new Promise((resolveUpdate) => {
                 if (setting) {
-                    db.run(
-                        'UPDATE setting SET value = ?, updated = ? WHERE id = ?',
-                        value, updated, setting.id,
-                    ).then(resolveUpdate);
-                } else {
+                    if (value !== null) {
+                        db.run(
+                            'UPDATE setting SET value = ?, updated = ? WHERE id = ?',
+                            value, updated, setting.id,
+                        ).then(resolveUpdate);
+                    } else {
+                        db.run('DELETE FROM setting WHERE id = ?', setting.id).then(resolveUpdate);
+                    }
+                } else if (value !== null) {
                     db.run(
                         'INSERT INTO setting(type, value, updated) VALUES(?, ?, ?)',
                         type, value, updated,
                     ).then(resolveUpdate);
+                } else {
+                    resolveUpdate();
                 }
             }).then(() => {
                 delete settings[type];
@@ -72,6 +78,10 @@ const set = (type, value) => {
             })
         });
     });
+};
+
+const rm = (type) => {
+    return set(type, null);
 };
 
 const keys = {
@@ -82,11 +92,11 @@ const keys = {
     PLEX_TOKEN: 4,
     SUBTITLES_LOCALE: 5,
     // OpenSubtitles
-    OS_USERNAME: 5,
-    OS_PASSWORD: 5,
+    OS_USERNAME: 6,
+    OS_PASSWORD: 7,
 }
 
 
 module.exports = {
-    use, get, set, keys,
+    use, get, set, rm, keys,
 };

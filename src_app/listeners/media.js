@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const child_process = require('child_process');
 
 const uuid = require('uuid/v4');
 const MD5 = require('md5.js');
@@ -23,8 +24,84 @@ const serverAddressList = [];
 let plexClient;
 let plexDirectories;
 let openSubtitlesClient;
+let mediaDirs;
 
 const resolveViewFile = (...view) => path.resolve(__dirname, '..', 'views', ...view);
+
+// TODO: change this to accept others OS
+const listMediaDirs = () => {
+    if (mediaDirs) {
+        return mediaDirs;
+    }
+
+    // const userBaseDir = child_process.execSync('echo $HOME').toString('UTF-8').trim();
+    const userBaseDir = child_process.execSync('getent passwd "$USER" | cut -d: -f6').toString('UTF-8').trim();
+
+    mediaDirs = {};
+
+    const dirs = {};
+
+    for (const line of child_process.execSync('lsblk').toString('UTF-8').trim().split("\n").slice(1)) {
+        const match = line.match(/(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(?<type>\S+)\s+(?<mount>\S+)/);
+
+        if (!match) {
+            continue;
+        }
+
+        const { type, mount } = match.groups;
+
+        if (type !== 'part' || /^\/boot\//.test(mount)) {
+            continue;
+        }
+
+        dirs[mount] = {
+            mount,
+            dir: `${mount === '/' ? userBaseDir : mount}/plex`,
+        };
+    }
+
+    for (const line of child_process.execSync('df').toString('UTF-8').trim().split("\n").slice(1)) {
+        const match = line.match(/(\S+)\s+(\S+)\s+(\S+)\s+(?<available>\S+)\s+(?<usage>\S+)\%\s+(?<mount>\S+)/);
+
+        if (!match) {
+            continue;
+        }
+
+        const { available, usage, mount } = match.groups;
+
+        // doesn't consider a partition with less tha 50mb of free space
+        if (typeof dirs[mount] === 'undefined' || available < 50 * 1024) {
+            continue;
+        }
+
+        const freePercentage = 100 - parseInt(usage, 10);
+        let free = available / 1024;
+        let freeScale = '';
+
+        if (free > 1000) {
+            free /= 1024;
+
+            if (free > 1000) {
+                free /= 1024;
+                freeScale = 'TB';
+            } else {
+                freeScale = 'GB';
+            }
+        } else {
+            freeScale = 'MB';
+        }
+
+        dirs[mount].available = available;
+        dirs[mount].label = `${dirs[mount].dir} (free: ${Math.round(free * 100) / 100}${freeScale} / ${freePercentage}%)`;
+    }
+
+    // order by the mount with more free space
+    Object.values(dirs).sort((a, b) => a.available > b.available ? -1 : (a.available === b.available ? 0 : 1)).forEach((v) => {
+        mediaDirs[v.mount] = v;
+    });
+
+    return mediaDirs;
+};
 
 const getLibrarySections = (reuse) => {
     if (!plexClient) {
@@ -117,6 +194,7 @@ const serverOpen = () => {
                         console.log("%s running Plex Media Server v%s", result.MediaContainer.friendlyName, result.MediaContainer.version);
                         settingsService.set(SETTINGS.PLEX_TOKEN, token).then(resolve);
                     }).catch((e) => {
+                        plexClient = null;
                         reject(e);
                     });
                 }).then(() => {
@@ -127,13 +205,21 @@ const serverOpen = () => {
             });
 
             expressServer.get('/configure/step-2', (req, res) => {
-                getLibrarySections().then((directories) => {
+                if (!plexClient) {
+                    return res.redirect('/configure');
+                }
 
+                Promise.all([
+                    getLibrarySections(),
+                    settingsService.get(SETTINGS.SUBTITLES_LOCALE, SETTINGS.OS_USERNAME)
+                ]).then(([directories, [subLocale, osUsername]]) => {
                     const data = {
+                        dirs: listMediaDirs(),
                         dir: {
-                            movies: directories.movies ? directories.movies.title : null,
-                            shows: directories.shows ? directories.shows.title : null,
+                            movies: directories.movies ? `${directories.movies.title} (${directories.movies.Location[0].path})` : null,
+                            shows: directories.shows ? `${directories.shows.title} (${directories.shows.Location[0].path})` : null,
                         },
+                        subLocale, osUsername,
                     };
 
                     const view = fs.readFileSync(resolveViewFile('configure', 'step-2.html'))
@@ -144,16 +230,20 @@ const serverOpen = () => {
             });
 
             expressServer.post('/configure/step-2', (req, res) => {
+                if (!plexClient) {
+                    return res.redirect('/configure');
+                }
+
+                const saveToDir = req.body['save-to'];
                 const moviesDir = req.body['movies-dir'];
                 const showsDir = req.body['shows-dir'];
                 const subLocale = req.body['sub-locale'];
+                const useSavedOpensub = !!parseInt(req.body['use-saved-opensub']);
                 const opensubUsername = req.body['opensub-username'];
                 let opensubPassword = req.body['opensub-password'];
 
                 new Promise((resolve, reject) => {
                     getLibrarySections().then((directories) => {
-                        console.log(directories);
-
                         if (!directories.movies && (!moviesDir || moviesDir.length < 3)) {
                             return reject(new Error('Movies directory name is required!'));
                         }
@@ -162,67 +252,149 @@ const serverOpen = () => {
                             return reject(new Error('Shows directory name is required!'));
                         }
 
+                        const saveTo = listMediaDirs()[saveToDir];
+
+                        if ((!directories.movies || !directories.shows) && !saveTo) {
+                            return reject(new Error('Select a valid directory to save the media files!'));
+                        }
+
+                        const saveMoviesTo = path.join(saveTo.dir, 'movies');
+                        const saveShowsTo = path.join(saveTo.dir, 'shows');
+
                         (() => {
-                            if (!subLocale || !opensubUsername || !opensubPassword) {
+                            if (directories.movies && directories.shows) {
                                 return Promise.resolve();
                             }
 
-                            return new Promise((resolve) => {
-                                settingsService.set(SETTINGS.SUBTITLES_LOCALE, subLocale).then(() => {
-                                    if (opensubUsername && opensubPassword) {
-                                        opensubPassword = new MD5().update(opensubPassword).digest('hex');
+                            if (!directories.movies) {
+                                fs.mkdirSync(saveMoviesTo, { recursive: true });
 
-                                        openSubtitlesClient = new OpenSubtitlesAPI({
-                                            useragent: `${projectName} v1.0`,
-                                            username: opensubUsername,
-                                            password: opensubPassword,
-                                        });
+                                if (!fs.existsSync(saveMoviesTo)) {
+                                    return reject(new Error(`Can't create movies diretory (${saveMoviesTo}), try other diretory`));
+                                }
+                            }
 
-                                        openSubtitlesClient.login().then((res) => {
-                                            console.log('Logged in on OpenSubtitles');
-                                            console.log(res.userinfo);
+                            if (!directories.shows) {
+                                fs.mkdirSync(saveShowsTo, { recursive: true });
+
+                                if (!fs.existsSync(saveShowsTo)) {
+                                    return reject(new Error(`Can't create shows diretory (${saveShowsTo}), try other diretory`));
+                                }
+                            }
+
+                            const createPromises = [];
+
+                            plexDirectories = null;
+
+                            if (!directories.movies) {
+                                const query = new URLSearchParams({
+                                    name: moviesDir,
+                                    type: 'movie',
+                                    agent: 'com.plexapp.agents.imdb',
+                                    scanner: 'Plex Movie Scanner',
+                                    language: 'en',
+                                    importFromiTunes: '',
+                                    enableAutoPhotoTags: '',
+                                    location: saveMoviesTo,
+                                });
+
+                                createPromises.push(new Promise((resolve) => {
+                                    plexClient.postQuery(`/library/sections?${query}`).then(({ MediaContainer }) => {
+                                        plexClient.query(`/library/sections/${MediaContainer.Directory[0].key}/refresh`).then(resolve).catch(reject);
+                                    }).catch(reject);
+                                }));
+                            }
+
+                            if (!directories.shows) {
+                                const query = new URLSearchParams({
+                                    name: showsDir,
+                                    type: 'show',
+                                    agent: 'com.plexapp.agents.thetvdb',
+                                    scanner: 'Plex Series Scanner',
+                                    language: 'en',
+                                    importFromiTunes: '',
+                                    enableAutoPhotoTags: '',
+                                    location: saveShowsTo,
+                                });
+
+                                createPromises.push(new Promise((resolve) => {
+                                    plexClient.postQuery(`/library/sections?${query}`).then(({ MediaContainer }) => {
+                                        plexClient.query(`/library/sections/${MediaContainer.Directory[0].key}/refresh`).then(resolve).catch(reject);
+                                    }).catch(reject);
+                                }));
+                            }
+
+                            return Promise.all(createPromises);
+                        })().then(() => {
+                            (() => {
+                                if (!subLocale) {
+                                    openSubtitlesClient = null;
+
+                                    return Promise.all([
+                                        settingsService.rm(SETTINGS.SUBTITLES_LOCALE),
+                                        settingsService.rm(SETTINGS.OS_USERNAME),
+                                        settingsService.rm(SETTINGS.OS_PASSWORD),
+                                    ]);
+                                }
+
+                                return new Promise((resolve) => {
+                                    settingsService.set(SETTINGS.SUBTITLES_LOCALE, subLocale).then(() => {
+                                        if (useSavedOpensub) {
+                                            resolve();
+                                        } else if (opensubUsername && opensubPassword) {
+                                            opensubPassword = new MD5().update(opensubPassword).digest('hex');
+
+                                            openSubtitlesClient = new OpenSubtitlesAPI({
+                                                useragent: `${projectName} v1.0`,
+                                                username: opensubUsername,
+                                                password: opensubPassword,
+                                            });
+
+                                            openSubtitlesClient.login().then((res) => {
+                                                console.log('Logged in on OpenSubtitles');
+                                                console.log(res.userinfo);
+
+                                                Promise.all(
+                                                    [
+                                                        settingsService.set(SETTINGS.OS_USERNAME, opensubUsername),
+                                                        settingsService.set(SETTINGS.OS_PASSWORD, opensubPassword),
+                                                    ]
+                                                ).then(resolve);
+                                            }).catch(err => reject(new Error(`Can't connect to OpenSubtitles: ${err.message}`)));
+                                        } else {
+                                            openSubtitlesClient = null;
 
                                             Promise.all(
                                                 [
-                                                    settingsService.set(SETTINGS.OS_USERNAME, opensubUsername),
-                                                    settingsService.set(SETTINGS.OS_PASSWORD, opensubPassword),
+                                                    settingsService.rm(SETTINGS.OS_USERNAME),
+                                                    settingsService.rm(SETTINGS.OS_PASSWORD),
                                                 ]
                                             ).then(resolve);
-                                        }).catch(err => reject(new Error(`Can't connect to OpenSubtitles: ${err.message}`)));
-                                    } else {
-                                        resolve();
-                                    }
+                                        }
+                                    });
                                 });
-                            });
-                        })().then(() => {
-                            resolve();
+                            })().then(resolve);
                         });
                     });
                 }).then(() => {
-                    res.send('Hello World!');
+                    res.redirect('/configure/complete');
                 }).catch((e) => {
                     res.redirect(`/configure/step-2?error=${encodeURIComponent(e.message)}`);
                 });
+            });
 
-                // const { username, password } = req.body;
+            expressServer.get('/configure/complete', (req, res) => {
+                if (!plexClient) {
+                    return res.redirect('/configure');
+                }
 
-                // name: Filmes 2
-                // type: movie
-                // agent: com.plexapp.agents.imdb
-                // scanner: Plex Movie Scanner
-                // language: en
-                // importFromiTunes:
-                // enableAutoPhotoTags:
-                // location: /home/elton/Público
+                getLibrarySections().then((directories) => {
+                    if (!directories.movies || !directories.shows) {
+                        return res.redirect('/configure/step-2');
+                    }
 
-                // name: Series
-                // type: show
-                // agent: com.plexapp.agents.thetvdb
-                // scanner: Plex Series Scanner
-                // language: en
-                // importFromiTunes:
-                // enableAutoPhotoTags:
-                // location: /home/elton/Público
+                    res.sendFile(resolveViewFile('configure', 'step-complete.html'));
+                });
             });
 
             expressServer.get('/add-torrent', (req, res) => {
