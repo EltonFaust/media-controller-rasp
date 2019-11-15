@@ -149,11 +149,15 @@ function listen() {
     });
 
     ipcMain.on('media-server-start', (event) => {
-        mediaListener.serverOpen().then((serverAddressList) => event.reply('media-server-start-reply', serverAddressList));
+        mediaListener.serverOpen().then(([serverAddressList, isConfigured]) => event.reply('media-server-start-reply', serverAddressList, isConfigured));
     });
 
     ipcMain.on('media-server-close', (event) => {
         mediaListener.serverClose().then(() => event.reply('media-server-close-reply'));
+    });
+
+    ipcMain.on('media-wait-configure', (event) => {
+        mediaListener.waitConfigure(() => event.reply('media-wait-configure-reply'));
     });
 
     // ipcMain.on('asynchronous-message', (event, arg) => {

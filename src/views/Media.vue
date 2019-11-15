@@ -1,31 +1,39 @@
 <template>
     <div class="page-media">
         <nav-actions></nav-actions>
-        <div class="configure">
+        <center-content>
             <template v-if="$store.state.media.serverAddress.length">
-                <div>
-                    <img :src="qrCodeSrc"/>
-                </div>
-                <div>
-                    <div class="address" v-for="address of $store.state.media.serverAddress" :key="address">
-                        {{ address }}/configure
-                        <i class="material-icons" v-if="qrCodeFor != address" @click="createQrCodeFor(address)">add_to_home_screen</i>
+                <template v-if="!$store.state.media.isConfigured">
+                    <div>Access on any device to configure you media server</div>
+                    <div>
+                        <img :src="qrCodeSrc"/>
                     </div>
-                </div>
+                    <div>
+                        <div class="address" v-for="address of $store.state.media.serverAddress" :key="address">
+                            {{ address }}/configure
+                            <i class="material-icons" v-if="qrCodeFor != address" @click="createQrCodeFor(address)">add_to_home_screen</i>
+                        </div>
+                    </div>
+                </template>
+                <template v-else>
+                    aa
+                </template>
             </template>
             <template v-else>
-                <button class="btn btn-primary" @click="startServer">Configure</button>
+                <button class="btn btn-primary" @click="startServer">Start server</button>
             </template>
-        </div>
+        </center-content>
     </div>
 </template>
 
 <style lang="scss" scoped>
     .page-media {
         height: 100%;
+        display: flex;
+        flex-direction: column;
 
-        .configure {
-            text-align: center;
+        .center-content {
+            flex: 1;
 
             .address {
                 padding: 5px;
@@ -50,10 +58,14 @@ export default {
     methods: {
         startServer() {
             this.$store.dispatch(ACTIONS.START_MEDIA_SERVER).then(() => {
-                const address = this.$store.state.media.serverAddress[0];
+                if (!this.$store.state.media.isConfigured) {
+                    const address = this.$store.state.media.serverAddress[0];
 
-                if (address) {
-                    this.createQrCodeFor(address);
+                    if (address) {
+                        this.createQrCodeFor(address);
+                    }
+
+                    this.$store.dispatch(ACTIONS.WAIT_MEDIA_CONFIGURE);
                 }
             });
         },
@@ -66,38 +78,13 @@ export default {
         },
     },
     mounted() {
-        const address = this.$store.state.media.serverAddress[0];
+        if (!this.$store.state.media.isConfigured) {
+            const address = this.$store.state.media.serverAddress[0];
 
-        if (address) {
-            this.createQrCodeFor(address);
+            if (address) {
+                this.createQrCodeFor(address);
+            }
         }
-        // QRCode.toDataURL('http://localhost:8888', { errorCorrectionLevel: 'H', width: 180 }, (err, url) => {
-        //     this.qrCodeSrc = url;
-        // });
-
-        // const client = new PlexAPI({
-        //     hostname: 'localhost',
-        //     token: '',
-        //     options: {
-        //         product: 'MediaController',
-        //         deviceName: 'RaspberryMediaController',
-        //     },
-        // });
-
-        // client.query('/').then((result) => {
-        //     console.log('%s running Plex Media Server v%s', result.MediaContainer.friendlyName, result.MediaContainer.version);
-        //     // array of children, such as Directory or Server items
-        //     // will have the .uri-property attached
-        //     console.log(result);
-        //     // console.log(result._children);
-        // }, (err) => {
-        //     console.error('Could not connect to server', err);
-        // });
-        // window.ipcRenderer.once('note-list-drawns-reply', (event, notes) => {
-        //     this.notes = notes;
-        // });
-
-        // window.ipcRenderer.send('note-list-drawns');
     },
 };
 </script>

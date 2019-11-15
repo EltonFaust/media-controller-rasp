@@ -90,10 +90,11 @@ const keys = {
     HOME_SHOW_MEDIA_CONTROLS: 3,
 
     PLEX_TOKEN: 4,
-    SUBTITLES_LOCALE: 5,
+    PLEX_SESSION_ID: 5,
+    SUBTITLES_LOCALE: 6,
     // OpenSubtitles
-    OS_USERNAME: 6,
-    OS_PASSWORD: 7,
+    OS_USERNAME: 7,
+    OS_PASSWORD: 8,
 }
 
 

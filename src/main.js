@@ -16,6 +16,7 @@ import store from './store/index';
 
 Vue.component('media-controls', () => import(/* webpackChunkName: "component-media-controls" */ '@/components/MediaControls.vue'));
 Vue.component('nav-actions', () => import(/* webpackChunkName: "component-nav-actions" */ '@/components/NavActions.vue'));
+Vue.component('center-content', () => import(/* webpackChunkName: "component-center-content" */ '@/components/CenterContent.vue'));
 // Vue.mixin(fooMixin)
 // Vue.directive('bar', barDirective);
 

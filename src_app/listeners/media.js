@@ -24,7 +24,9 @@ const serverAddressList = [];
 let plexClient;
 let plexDirectories;
 let openSubtitlesClient;
+let downloadSubForLocale;
 let mediaDirs;
+let waitConfigCallback;
 
 const resolveViewFile = (...view) => path.resolve(__dirname, '..', 'views', ...view);
 
@@ -182,19 +184,25 @@ const serverOpen = () => {
                         return;
                     }
 
-                    plexClient = new PlexAPI(plexConfig);
+                    const configPlexClient = new PlexAPI(plexConfig);
 
                     if (!token) {
-                        plexClient.authenticator.on('token', (authToken) => {
+                        configPlexClient.authenticator.on('token', (authToken) => {
                             token = authToken;
                         });
                     }
 
-                    plexClient.query('/').then((result) => {
+                    configPlexClient.query('/').then((result) => {
+                        plexClient = configPlexClient;
                         console.log("%s running Plex Media Server v%s", result.MediaContainer.friendlyName, result.MediaContainer.version);
-                        settingsService.set(SETTINGS.PLEX_TOKEN, token).then(resolve);
+
+                        Promise.all(
+                            [
+                                settingsService.set(SETTINGS.PLEX_TOKEN, token),
+                                settingsService.set(SETTINGS.PLEX_SESSION_ID, plexSessionIdentifier),
+                            ]
+                        ).then(resolve);
                     }).catch((e) => {
-                        plexClient = null;
                         reject(e);
                     });
                 }).then(() => {
@@ -238,6 +246,7 @@ const serverOpen = () => {
                 const moviesDir = req.body['movies-dir'];
                 const showsDir = req.body['shows-dir'];
                 const subLocale = req.body['sub-locale'];
+
                 const useSavedOpensub = !!parseInt(req.body['use-saved-opensub']);
                 const opensubUsername = req.body['opensub-username'];
                 let opensubPassword = req.body['opensub-password'];
@@ -327,11 +336,13 @@ const serverOpen = () => {
                             return Promise.all(createPromises);
                         })().then(() => {
                             (() => {
-                                if (!subLocale) {
+                                downloadSubForLocale = subLocale;
+
+                                if (subLocale === 'none') {
                                     openSubtitlesClient = null;
 
                                     return Promise.all([
-                                        settingsService.rm(SETTINGS.SUBTITLES_LOCALE),
+                                        settingsService.set(SETTINGS.SUBTITLES_LOCALE, subLocale),
                                         settingsService.rm(SETTINGS.OS_USERNAME),
                                         settingsService.rm(SETTINGS.OS_PASSWORD),
                                     ]);
@@ -344,15 +355,16 @@ const serverOpen = () => {
                                         } else if (opensubUsername && opensubPassword) {
                                             opensubPassword = new MD5().update(opensubPassword).digest('hex');
 
-                                            openSubtitlesClient = new OpenSubtitlesAPI({
+                                            const configOpenSubtitlesClient = new OpenSubtitlesAPI({
                                                 useragent: `${projectName} v1.0`,
                                                 username: opensubUsername,
                                                 password: opensubPassword,
                                             });
 
-                                            openSubtitlesClient.login().then((res) => {
-                                                console.log('Logged in on OpenSubtitles');
-                                                console.log(res.userinfo);
+                                            configOpenSubtitlesClient.login().then((res) => {
+                                                openSubtitlesClient = configOpenSubtitlesClient;
+
+                                                console.log(`Logged in on OpenSubtitles as ${res.userinfo.UserNickName} (ID: ${res.userinfo.IDUser}) - <${res.userinfo.UserRank}>`);
 
                                                 Promise.all(
                                                     [
@@ -393,7 +405,18 @@ const serverOpen = () => {
                         return res.redirect('/configure/step-2');
                     }
 
-                    res.sendFile(resolveViewFile('configure', 'step-complete.html'));
+                    settingsService.get(SETTINGS.SUBTITLES_LOCALE).then((subLocale) => {
+                        if (!subLocale) {
+                            return res.redirect('/configure/step-2');
+                        }
+
+                        if (waitConfigCallback) {
+                            waitConfigCallback();
+                            waitConfigCallback = null;
+                        }
+
+                        res.sendFile(resolveViewFile('configure', 'step-complete.html'));
+                    });
                 });
             });
 
@@ -425,7 +448,57 @@ const serverOpen = () => {
                 });
             }
 
-            listenerResolve(serverAddressList);
+            new Promise((resolve) => {
+                if (plexClient && downloadSubForLocale) {
+                    return resolve(true);
+                }
+
+                settingsService.get(
+                    SETTINGS.PLEX_TOKEN,
+                    SETTINGS.PLEX_SESSION_ID,
+                    SETTINGS.SUBTITLES_LOCALE,
+                    SETTINGS.OS_USERNAME,
+                    SETTINGS.OS_PASSWORD
+                ).then(([token, plexSessionIdentifier, subLocale, opensubUsername, opensubPassword]) => {
+                    if (!token || !plexSessionIdentifier || !subLocale) {
+                        return resolve(false);
+                    }
+
+                    downloadSubForLocale = subLocale;
+
+                    const configPlexClient = new PlexAPI({
+                        hostname: '127.0.0.1',
+                        token,
+                        options: {
+                            identifier: plexSessionIdentifier,
+                            product: projectName,
+                            version: projectVersion,
+                        },
+                    });
+
+                    configPlexClient.query('/').then((result) => {
+                        plexClient = configPlexClient;
+                        console.log("%s running Plex Media Server v%s", result.MediaContainer.friendlyName, result.MediaContainer.version);
+
+                        // OpenSubtitles not configured
+                        if (subLocale == 'none' || !opensubUsername) {
+                            return resolve(true);
+                        }
+
+                        const configOpenSubtitlesClient = new OpenSubtitlesAPI({
+                            useragent: `${projectName} v1.0`,
+                            username: opensubUsername,
+                            password: opensubPassword,
+                        });
+
+                        configOpenSubtitlesClient.login().then((res) => {
+                            openSubtitlesClient = configOpenSubtitlesClient;
+                            console.log(`Logged in on OpenSubtitles as ${res.userinfo.UserNickName} (ID: ${res.userinfo.IDUser}) - <${res.userinfo.UserRank}>`);
+                            resolve(true);
+                        }).catch(() => resolve(true));
+                    }).catch(() => resolve(false));
+                });
+            }).then(isConfigured => listenerResolve([serverAddressList, isConfigured]));
         });
     });
 };
@@ -443,6 +516,8 @@ const serverClose = () => {
                     expressServerHandler = null;
                     plexClient = null;
                     plexDirectories = null;
+                    openSubtitlesClient = null;
+                    waitConfigCallback = null;
                     resolve();
                 });
             });
@@ -450,8 +525,13 @@ const serverClose = () => {
     });
 };
 
+const waitConfigure = (waitCallback) => {
+    waitConfigCallback = waitCallback;
+};
+
 module.exports = {
     // prepare,
     serverOpen,
     serverClose,
+    waitConfigure,
 };

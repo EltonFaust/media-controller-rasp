@@ -44,4 +44,7 @@ export default {
     [MUTATIONS.SET_MEDIA_SERVER_ADDRESS]: (state, addresses) => {
         Vue.set(state.media, 'serverAddress', addresses);
     },
+    [MUTATIONS.SET_MEDIA_AS_CONFIGURED]: (state, isConfigured) => {
+        Vue.set(state.media, 'isConfigured', isConfigured);
+    },
 };

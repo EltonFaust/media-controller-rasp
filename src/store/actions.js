@@ -66,11 +66,31 @@ export default {
 
     // ------------ MEDIA ------------
     [ACTIONS.START_MEDIA_SERVER]: ({ commit }) => new Promise((resolve) => {
-        window.ipcRenderer.once('media-server-start-reply', (event, addresses) => {
+        window.ipcRenderer.once('media-server-start-reply', (event, addresses, isConfigured) => {
             commit(MUTATIONS.SET_MEDIA_SERVER_ADDRESS, addresses);
+            commit(MUTATIONS.SET_MEDIA_AS_CONFIGURED, isConfigured);
             resolve();
         });
 
         window.ipcRenderer.send('media-server-start');
+    }),
+    [ACTIONS.CLOSE_MEDIA_SERVER]: ({ commit }) => new Promise((resolve) => {
+        window.ipcRenderer.once('media-server-close-reply', () => {
+            commit(MUTATIONS.SET_MEDIA_SERVER_ADDRESS, []);
+            commit(MUTATIONS.SET_MEDIA_AS_CONFIGURED, false);
+            resolve();
+        });
+
+        window.ipcRenderer.send('media-server-close');
+    }),
+    [ACTIONS.WAIT_MEDIA_CONFIGURE]: ({ commit }) => new Promise((resolve) => {
+        console.log(ACTIONS.WAIT_MEDIA_CONFIGURE);
+
+        window.ipcRenderer.once('media-wait-configure-reply', () => {
+            commit(MUTATIONS.SET_MEDIA_AS_CONFIGURED, true);
+            resolve();
+        });
+
+        window.ipcRenderer.send('media-wait-configure');
     }),
 };

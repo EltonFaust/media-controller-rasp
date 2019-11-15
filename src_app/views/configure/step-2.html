@@ -26,22 +26,23 @@
                 $('select[name="sub-locale"]').change((evt) => {
                     const subValue = $(evt.target).val();
 
-                    if (subValue === '') {
+                    if (subValue === 'none') {
                         $('#sub-info').hide();
                     } else {
                         $('#sub-info').show();
                     }
                 });
 
-                $(':checkbox[name="use-saved-opensub"]').change((evt) => {
+                $(':checkbox#use-saved-opensub').change((evt) => {
                     const isChecked = $(evt.target).is(':checked');
+                    $('input[name="use-saved-opensub"]').val(isChecked ? 1 : 0);
                     $('#opensubtitles-chedentials')[isChecked ? 'hide' : 'show']();
                 });
 
                 $('select[name="sub-locale"]').change((evt) => {
                     const subValue = $(evt.target).val();
 
-                    if (subValue === '') {
+                    if (subValue === 'none') {
                         $('#sub-info').hide();
                     } else {
                         $('#sub-info').show();
@@ -65,7 +66,7 @@
                 }
 
                 if (data.osUsername) {
-                    $(':checkbox[name="use-saved-opensub"]').prop('checked', true).closest('.checkbox').show();
+                    $(':checkbox#use-saved-opensub').prop('checked', true).change().closest('.checkbox').show();
                     $('input[name="opensub-username"]').val(data.osUsername)
                     $('#opensubtitles-chedentials').hide();
                 }
@@ -111,8 +112,8 @@
                 <div class="form-group" style="margin-top: 10px;">
                     <label for="sub-locale">Auto download subtitles</label>
                     <select name="sub-locale" class="form-control">
-                        <option value="">Don't download</option>
-                        <option value="pt-br">Português (pt-BR)</option>
+                        <option value="none">Don't download</option>
+                        <option value="pt-BR">Português (pt-BR)</option>
                         <option value="es">Español (es)</option>
                         <option value="fr">Français (fr)</option>
                     </select>
@@ -126,7 +127,7 @@
                     <div class="checkbox" style="display: none;">
                         <label>
                             <input type="hidden" name="use-saved-opensub" value="0">
-                            <input type="checkbox" name="use-saved-opensub" value="1"> Use saved OpenSubtitles credentials
+                            <input type="checkbox" id="use-saved-opensub"> Use saved OpenSubtitles credentials
                         </label>
                     </div>
 
