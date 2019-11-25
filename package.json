@@ -23,6 +23,7 @@
     "opensubtitles-api": "^5.0.1",
     "plex-api": "^5.2.5",
     "qrcode": "^1.4.2",
+    "rxjs": "^6.5.3",
     "simple-keyboard": "^2.24.1",
     "sqlite": "^3.0.3",
     "sqlite3": "^4.0.9",

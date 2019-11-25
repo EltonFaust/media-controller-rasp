@@ -10,14 +10,14 @@ import App from './App.vue';
 import router from './router';
 import store from './store/index';
 
-// import fooMixin from './mixns/foo';
+import loadingMixin from './mixins/loading';
 // import barDirective from './directives/bar';
 // import * as filters from './filters';
 
 Vue.component('media-controls', () => import(/* webpackChunkName: "component-media-controls" */ '@/components/MediaControls.vue'));
 Vue.component('nav-actions', () => import(/* webpackChunkName: "component-nav-actions" */ '@/components/NavActions.vue'));
 Vue.component('center-content', () => import(/* webpackChunkName: "component-center-content" */ '@/components/CenterContent.vue'));
-// Vue.mixin(fooMixin)
+Vue.mixin(loadingMixin);
 // Vue.directive('bar', barDirective);
 
 // Object.keys(filters).forEach((key) => {

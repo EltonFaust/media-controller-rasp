@@ -120,11 +120,11 @@ export default {
         return {
             drawn: null,
             size: 3,
-            color: 'light',
+            color: 'primary',
             colors: {
-                light: [248, 249, 250],
                 primary: [0, 123, 255],
                 secondary: [108, 117, 125],
+                light: [248, 249, 250],
                 success: [40, 167, 69],
                 warning: [255, 193, 7],
                 danger: [220, 53, 69],
@@ -143,7 +143,8 @@ export default {
             elementId: 'note-drawning',
             width: drawnWidth,
             height: drawnHeight,
-            backgroundColor: [0, 0, 0],
+            backgroundColor: [238, 238, 238, 0],
+            // backgroundColor: [0, 0, 0, 0],
             lineWidth: this.size,
             strokeColor: this.colors[this.color],
         });

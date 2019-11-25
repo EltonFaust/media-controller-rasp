@@ -480,6 +480,11 @@ const serverOpen = () => {
                         plexClient = configPlexClient;
                         console.log("%s running Plex Media Server v%s", result.MediaContainer.friendlyName, result.MediaContainer.version);
 
+                        // TODO: remove
+                        // listMedia('all');
+                        // listMedia('shows');
+                        // listMedia('movies');
+
                         // OpenSubtitles not configured
                         if (subLocale == 'none' || !opensubUsername) {
                             return resolve(true);
@@ -529,9 +534,59 @@ const waitConfigure = (waitCallback) => {
     waitConfigCallback = waitCallback;
 };
 
+const listMedia = (type) => {
+    if (type === 'all') {
+        return Promise.all([listMedia('movies'), listMedia('shows')]);
+    } else if (type !== 'movies' && type !== 'shows') {
+        Promise.reject(new Error('Type must be "movies" or "shows"'));
+    }
+
+    return new Promise((resolve) => {
+        getLibrarySections(true).then((directories) => {
+            const query = new URLSearchParams({
+                type: type === 'movies' ? 1 : 2,
+                includeCollections: 1,
+                includeAdvanced: 1,
+                includeMeta: 0,
+                'X-Plex-Container-Start': 0,
+                'X-Plex-Container-Size': 100,
+            });
+
+            const sectionId = directories[type].key;
+
+            plexClient.query(`/library/sections/${sectionId}/all?${query}`).then(({ MediaContainer: { Metadata } }) => {
+                const result = [];
+
+                Metadata.forEach((item) => {
+                    const resultItem = {
+                        key: item.ratingKey,
+                        title: item.title,
+                        summary: item.summary,
+                        thumb: `http://127.0.0.1:32400${item.thumb}?X-Plex-Token=${plexClient.authToken}`,
+                    };
+
+                    if (type === 'movies') {
+                        // TODO: check for subtitle
+                        resultItem.hasSubtitle = false;
+                    } else {
+                        resultItem.episodeCount = Metadata.leafCount;
+                        resultItem.episodes = null;
+                    }
+
+                    result.push(resultItem);
+                });
+
+                // console.log(Metadata);
+                console.log(result);
+                resolve(result);
+            });
+        });
+    });
+}
+
 module.exports = {
-    // prepare,
     serverOpen,
     serverClose,
     waitConfigure,
+    listMedia,
 };

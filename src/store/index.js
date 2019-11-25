@@ -9,6 +9,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        isLoading: false,
         isSettingsLoaded: false,
         home: {
             minLines: 2,
@@ -20,6 +21,10 @@ export default new Vuex.Store({
         media: {
             isConfigured: false,
             serverAddress: [],
+            list: {
+                movies: null,
+                shows: null,
+            },
         },
     },
     actions,

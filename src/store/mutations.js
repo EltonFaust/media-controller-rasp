@@ -3,6 +3,10 @@ import Vue from 'vue';
 import { ACTION_MODES, MUTATIONS } from './_types';
 
 export default {
+    [MUTATIONS.SET_AS_LOADING]: (state, isLoading) => {
+        Vue.set(state, 'isLoading', isLoading);
+    },
+
     [MUTATIONS.SET_SETTINGS]: (state, config) => {
         Vue.set(state.home, 'minLines', config.home_min_lines);
         // state. =
@@ -46,5 +50,10 @@ export default {
     },
     [MUTATIONS.SET_MEDIA_AS_CONFIGURED]: (state, isConfigured) => {
         Vue.set(state.media, 'isConfigured', isConfigured);
+    },
+    [MUTATIONS.SET_MEDIA_LIST]: (state, { mediaType, list }) => {
+        if (['movies', 'shows'].indexOf(mediaType) !== -1) {
+            Vue.set(state.media.list, mediaType, list);
+        }
     },
 };

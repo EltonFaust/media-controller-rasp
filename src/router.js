@@ -41,6 +41,11 @@ export default new Router({
             name: 'media',
             component: () => import(/* webpackChunkName: "page-media" */ './views/Media.vue'),
         },
+        {
+            path: '/media-downloads',
+            name: 'media-downloads',
+            component: () => import(/* webpackChunkName: "page-media-downloads" */ './views/MediaDownloads.vue'),
+        },
         // {
         //     path: '/note-drawn',
         //     name: 'note-drawn',

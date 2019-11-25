@@ -3,7 +3,7 @@
         <b-container fluid class="actions">
             <b-row v-for="(group, gidx) of actionGroups" :key="gidx">
                 <b-col xs="4" v-for="(item, iidx) of group" :key="iidx">
-                    <router-link v-if="item !== null" :to="item.to" class="border rounded border-primary bg-primary text-white">
+                    <router-link v-if="item !== null" :to="item.to" class="border rounded highlight">
                         <div class="action-label">
                             <div class="item-icon"><i class="material-icons">{{ item.icon }}</i></div>
                             <div class="item-label">{{ item.label }}</div>
@@ -94,12 +94,13 @@
             .click-area {
                 width: 80px;
                 height: 80px;
-                background-color: $primary;
+                background-color: $highlight-primary;
                 transform: rotate(45deg);
             }
 
             .click-button {
                 position: absolute;
+                color: $highlight-secondary;
             }
         }
     }

@@ -3,6 +3,13 @@
 @import '~bootstrap/scss/variables';
 @import '~bootstrap/scss/mixins';
 
-$body-bg: $black;
-$body-color: $white;
-$modal-content-color: $gray-900;
+$body-bg: darken(#eee, 10%);
+$body-color: #333;
+$modal-content-color: #333;
+
+$highlight-primary: #eb9316;
+$highlight-secondary: $white;
+
+// $body-bg: $black;
+// $body-color: $white;
+// $modal-content-color: $gray-900;

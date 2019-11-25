@@ -1,7 +1,7 @@
 <template>
     <b-container class="media-controls">
         <div class="play-container">
-            <div class="play-action" @click="playPause">
+            <div class="play-action bg-highlight border-highlighter" @click="playPause">
                 <i class="icon material-icons">play_arrow</i>/<i class="icon material-icons">pause</i>
             </div>
         </div>
@@ -13,12 +13,12 @@
                             <i class="material-icons">volume_down</i>
                         </div>
                     </div>
-                    <div class="track-action" @click="prevTrack"><i class="material-icons">skip_previous</i></div>
+                    <div class="track-action bg-highlight" @click="prevTrack"><i class="material-icons">skip_previous</i></div>
                 </div>
             </b-col>
             <b-col class="secondary-actions">
                 <div class="actions-container">
-                    <div class="track-action" @click="nextTrack"><i class="material-icons">skip_next</i></div>
+                    <div class="track-action bg-highlight" @click="nextTrack"><i class="material-icons">skip_next</i></div>
                     <div class="volume-action increment-volume">
                         <div class="action-area" @click="incrementVolume">
                             <i class="material-icons">volume_up</i>
@@ -80,7 +80,8 @@ export default {
             .play-action {
                 text-align: center;
                 @include border-radius($internal-height);
-                border: 1px solid black;
+                border-style: solid;
+                border-width: 1px;
                 font-size: $icon-play-size * .7;
                 // - 1px == border
                 padding: ((($internal-height - $icon-play-size) / 2) - 1px) 0;
@@ -124,7 +125,6 @@ export default {
                     width: $internal-height + $icon-track-size;
                     padding: (($internal-height - $icon-track-size) / 2) 0;
                     font-size: $icon-track-size;
-                    background-color: theme-color("primary");
 
                     i {
                         height: $icon-track-size;

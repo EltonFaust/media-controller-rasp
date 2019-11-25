@@ -152,12 +152,16 @@ function listen() {
         mediaListener.serverOpen().then(([serverAddressList, isConfigured]) => event.reply('media-server-start-reply', serverAddressList, isConfigured));
     });
 
-    ipcMain.on('media-server-close', (event) => {
-        mediaListener.serverClose().then(() => event.reply('media-server-close-reply'));
+    ipcMain.on('media-server-stop', (event) => {
+        mediaListener.serverClose().then(() => event.reply('media-server-stop-reply'));
     });
 
     ipcMain.on('media-wait-configure', (event) => {
         mediaListener.waitConfigure(() => event.reply('media-wait-configure-reply'));
+    });
+
+    ipcMain.on('media-list', (event, type) => {
+        mediaListener.listMedia(type).then((medias) => event.reply('media-list-reply', medias));
     });
 
     // ipcMain.on('asynchronous-message', (event, arg) => {

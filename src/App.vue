@@ -1,8 +1,40 @@
 <template>
     <div id="app">
-        <router-view/>
+        <div class="loading" v-if="$store.state.isLoading">
+            <center-content>
+                <div><b-spinner></b-spinner></div>
+                <div class="message">Loading...</div>
+            </center-content>
+        </div>
+        <router-view class="page-content" :class="{ 'is-loading': $store.state.isLoading }"/>
     </div>
 </template>
+
+<style lang="scss" scoped>
+    #app {
+        > .loading {
+            position: absolute;
+            background: rgba($black, 0.9);
+            color: $white;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 10;
+
+            .message {
+                margin-top: 10px;
+                font-size: 30px;
+            }
+        }
+
+        > .page-content {
+            &.is-loading {
+                overflow: hidden;
+            }
+        }
+    }
+</style>
 
 <style lang="scss">
 $modal-header-padding: 10px;
@@ -18,6 +50,37 @@ html, body, #app {
 
 a {
     text-decoration: none !important;
+    &, &:active {
+        color: $highlight-secondary;
+    }
+
+    &.highlight {
+        background-color: $highlight-primary;
+        border-color: $highlight-primary;
+    }
+
+    &.highlight-outline {
+        background-color: $highlight-secondary;
+        color: $highlight-primary;
+        border-color: $highlight-primary;
+    }
+}
+
+.bg-highlight {
+    background-color: $highlight-primary;
+    color: $highlight-secondary;
+}
+
+.text-highlight {
+    color: $highlight-primary;
+}
+
+.border-highlight {
+    border-color: $highlight-primary;
+}
+
+.border-highlighter {
+    border-color: darken($highlight-primary, 10%);
 }
 
 @if ($production) {
