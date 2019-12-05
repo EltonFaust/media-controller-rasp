@@ -78,6 +78,8 @@ export default {
         window.ipcRenderer.once('media-server-stop-reply', () => {
             commit(MUTATIONS.SET_MEDIA_SERVER_ADDRESS, []);
             commit(MUTATIONS.SET_MEDIA_AS_CONFIGURED, false);
+            commit(MUTATIONS.SET_MEDIA_LIST, { mediaType: 'movies', list: null });
+            commit(MUTATIONS.SET_MEDIA_LIST, { mediaType: 'shows', list: null });
             resolve();
         });
 
@@ -94,42 +96,23 @@ export default {
         window.ipcRenderer.send('media-wait-configure');
     }),
     [ACTIONS.FETCH_MEDIA_LIST]: ({ commit, state }, { mediaType, refresh }) => new Promise((resolve) => {
-        let fetchMediaType = mediaType || 'all';
-
-        if (!refresh) {
-            if (['movies', 'shows'].indexOf(fetchMediaType) !== -1) {
-                if (state.media.list[fetchMediaType]) {
-                    resolve();
-                    return;
-                }
-            } else {
-                if (state.media.list.movies && state.media.list.shows) {
-                    resolve();
-                    return;
-                }
-
-                // not required to fetch both
-                if (!(!state.media.list.movies && !state.media.list.shows)) {
-                    if (!state.media.list.movies) {
-                        fetchMediaType = 'movies';
-                    } else {
-                        fetchMediaType = 'shows';
-                    }
-                }
-            }
+        if (['movies', 'shows'].indexOf(mediaType) === -1) {
+            resolve();
+            return;
         }
 
+        if (!refresh && state.media.list[mediaType]) {
+            resolve();
+            return;
+        }
+
+        commit(MUTATIONS.SET_MEDIA_LIST, { mediaType, list: false });
+
         window.ipcRenderer.once('media-list-reply', (event, list) => {
-            if (['movies', 'shows'].indexOf(fetchMediaType) !== -1) {
-                commit(MUTATIONS.SET_MEDIA_LIST, { mediaType: fetchMediaType, list });
-                resolve();
-            } else {
-                commit(MUTATIONS.SET_MEDIA_LIST, { mediaType: 'movies', list: list[0] });
-                commit(MUTATIONS.SET_MEDIA_LIST, { mediaType: 'shows', list: list[1] });
-                resolve();
-            }
+            commit(MUTATIONS.SET_MEDIA_LIST, { mediaType, list });
+            resolve();
         });
 
-        window.ipcRenderer.send('media-list', fetchMediaType);
+        window.ipcRenderer.send('media-list', mediaType);
     }),
 };

@@ -562,12 +562,13 @@ const listMedia = (type) => {
                         key: item.ratingKey,
                         title: item.title,
                         summary: item.summary,
-                        thumb: `http://127.0.0.1:32400${item.thumb}?X-Plex-Token=${plexClient.authToken}`,
+                        thumb: item.thumb ? `http://127.0.0.1:32400${item.thumb}?X-Plex-Token=${plexClient.authToken}` : null,
                     };
 
                     if (type === 'movies') {
                         // TODO: check for subtitle
                         resultItem.hasSubtitle = false;
+                        resultItem.duration = item.duration;
                     } else {
                         resultItem.episodeCount = Metadata.leafCount;
                         resultItem.episodes = null;
@@ -577,7 +578,7 @@ const listMedia = (type) => {
                 });
 
                 // console.log(Metadata);
-                console.log(result);
+                // console.log(result);
                 resolve(result);
             });
         });

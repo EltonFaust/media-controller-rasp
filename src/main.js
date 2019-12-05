@@ -12,7 +12,7 @@ import store from './store/index';
 
 import loadingMixin from './mixins/loading';
 // import barDirective from './directives/bar';
-// import * as filters from './filters';
+import * as filters from './filters';
 
 Vue.component('media-controls', () => import(/* webpackChunkName: "component-media-controls" */ '@/components/MediaControls.vue'));
 Vue.component('nav-actions', () => import(/* webpackChunkName: "component-nav-actions" */ '@/components/NavActions.vue'));
@@ -20,9 +20,9 @@ Vue.component('center-content', () => import(/* webpackChunkName: "component-cen
 Vue.mixin(loadingMixin);
 // Vue.directive('bar', barDirective);
 
-// Object.keys(filters).forEach((key) => {
-//     Vue.filter(key, filters[key]);
-// });
+Object.keys(filters).forEach((key) => {
+    Vue.filter(key, filters[key]);
+});
 
 Vue.mixin({
     beforeRouteUpdate(to, from, next) {
