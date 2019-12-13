@@ -24,7 +24,7 @@ const serverAddressList = [];
 let plexClient;
 let plexDirectories;
 let openSubtitlesClient;
-let downloadSubForLocale;
+let downloadSubForLocale = 'none';
 let mediaDirs;
 let waitConfigCallback;
 
@@ -556,6 +556,7 @@ const listMedia = (type) => {
 
             plexClient.query(`/library/sections/${sectionId}/all?${query}`).then(({ MediaContainer: { Metadata } }) => {
                 const result = [];
+                const showPromises = [];
 
                 Metadata.forEach((item) => {
                     const resultItem = {
@@ -566,28 +567,103 @@ const listMedia = (type) => {
                     };
 
                     if (type === 'movies') {
-                        // TODO: check for subtitle
-                        resultItem.hasSubtitle = false;
                         resultItem.duration = item.duration;
+
+                        if (downloadSubForLocale !== 'none') {
+                            // consider the first file to check the subtitles
+                            const fileName = item.Media[0].Part[0].file;
+                            // srt file location
+                            const strFileName = `${fileName.substr(0, fileName.length - path.extname(fileName).length)}.${downloadSubForLocale}.srt`;
+                            // subtitle found for the saved locale
+                            resultItem.subtitle = fs.existsSync(strFileName) ? downloadSubForLocale : null;
+                        } else {
+                            resultItem.subtitle = false;
+                        }
+
+                        result.push(resultItem);
                     } else {
                         resultItem.episodeCount = Metadata.leafCount;
-                        resultItem.episodes = null;
-                    }
+                        resultItem.seasons = [];
 
-                    result.push(resultItem);
+                        // list all seasons basic information
+                        showPromises.push(new Promise((resolveShow) => {
+                            plexClient.query(`/library/metadata/${item.ratingKey}/children`).then(({ MediaContainer: { Metadata } }) => {
+                                Metadata.forEach((season) => {
+                                    if (season.type !== 'season') {
+                                        return;
+                                    }
+
+                                    const thumb = season.thumb || season.parentThumb;
+
+                                    resultItem.seasons.push({
+                                        key: season.ratingKey,
+                                        title: season.title,
+                                        thumb: thumb ? `http://127.0.0.1:32400${thumb}?X-Plex-Token=${plexClient.authToken}` : null,
+                                        episodeCount: season.leafCount,
+                                        episodes: null,
+                                    });
+                                });
+
+                                resolveShow(resultItem);
+                            });
+                        }));
+                    }
                 });
 
-                // console.log(Metadata);
-                // console.log(result);
-                resolve(result);
+                if (type === 'movies') {
+                    resolve(result);
+                } else {
+                    Promise.all(showPromises).then(resolve);
+                }
             });
         });
     });
 }
+
+const detailShowSeason = (seasonKey) => {
+    return new Promise((resolve) => {
+        plexClient.query(`/library/metadata/${seasonKey}/children`).then(({ MediaContainer: { Metadata } }) => {
+            const episodes = [];
+
+            Metadata.forEach((episode) => {
+                if (episode.type !== 'episode') {
+                    return;
+                }
+
+                const thumb = episode.thumb || episode.parentThumb || episode.grandparentThumb;
+                let subtitle;
+
+                if (downloadSubForLocale !== 'none') {
+                    // consider the first file to check the subtitles
+                    const fileName = episode.Media[0].Part[0].file;
+                    // srt file location
+                    const strFileName = `${fileName.substr(0, fileName.length - path.extname(fileName).length)}.${downloadSubForLocale}.srt`;
+                    // subtitle found for the saved locale
+                    subtitle = fs.existsSync(strFileName) ? downloadSubForLocale : null;
+                } else {
+                    subtitle = false;
+                }
+
+                episodes.push({
+                    key: episode.ratingKey,
+                    identifier: `S${`0${episode.parentIndex}`.substr(-2)}E${`0${episode.index}`.substr(-2)}`,
+                    title: episode.title,
+                    duration: episode.duration,
+                    summary: episode.summary,
+                    thumb: thumb ? `http://127.0.0.1:32400${thumb}?X-Plex-Token=${plexClient.authToken}` : null,
+                    subtitle,
+                });
+            });
+
+            resolve(episodes);
+        });
+    });
+};
 
 module.exports = {
     serverOpen,
     serverClose,
     waitConfigure,
     listMedia,
+    detailShowSeason,
 };

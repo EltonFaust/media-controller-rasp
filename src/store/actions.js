@@ -115,4 +115,14 @@ export default {
 
         window.ipcRenderer.send('media-list', mediaType);
     }),
+    [ACTIONS.FETCH_SHOW_SEASON_DETAIL]: ({ commit }, { showKey, seasonKey }) => new Promise((resolve) => {
+        commit(MUTATIONS.SET_SHOW_SEASON_DETAIL, { showKey, seasonKey, episodes: false });
+
+        window.ipcRenderer.once('media-detail-show-season-reply', (event, episodes) => {
+            commit(MUTATIONS.SET_SHOW_SEASON_DETAIL, { showKey, seasonKey, episodes });
+            resolve();
+        });
+
+        window.ipcRenderer.send('media-detail-show-season', seasonKey);
+    }),
 };

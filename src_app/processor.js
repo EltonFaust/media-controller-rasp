@@ -164,6 +164,10 @@ function listen() {
         mediaListener.listMedia(type).then((medias) => event.reply('media-list-reply', medias));
     });
 
+    ipcMain.on('media-detail-show-season', (event, seasonKey) => {
+        mediaListener.detailShowSeason(seasonKey).then((episodes) => event.reply('media-detail-show-season-reply', episodes));
+    });
+
     // ipcMain.on('asynchronous-message', (event, arg) => {
     //     console.log(arg) // prints "ping"
     //     event.reply('asynchronous-reply', 'pong')

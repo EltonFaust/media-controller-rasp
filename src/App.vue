@@ -20,7 +20,7 @@
             right: 0;
             bottom: 0;
             left: 0;
-            z-index: 10;
+            z-index: 100;
 
             .message {
                 margin-top: 10px;
@@ -95,6 +95,21 @@ a {
     font-size: inherit !important;
     vertical-align: middle;
     // line-height: $line-height-base !important;
+}
+
+.btn.btn-fab {;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;;
+    z-index: 50;
+    display: inline-block;
+    padding: .7rem;
+    font-size: 1.1rem;
+    line-height: 1;
+    border-radius: 50%;
+    text-align: center;
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5), 3px 3px 3px rgba(0, 0, 0, 0.25);
+    cursor: default;
 }
 </style>
 

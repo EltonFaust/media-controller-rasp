@@ -1,10 +1,12 @@
 <template>
     <div class="page-media">
         <nav-actions>
-            <b-link :to="{ name: 'media-downloads' }" v-show="isConfigured" slot="central"><i class="material-icons">file_download</i> Downloads</b-link>
+            <!-- <b-link :to="{ name: 'media-downloads' }" v-show="isConfigured" slot="central"><i class="material-icons">file_download</i> Downloads</b-link> -->
             <b-link @click="stopServer" v-show="isConfigured"><i class="material-icons">power_off</i> Close server</b-link>
         </nav-actions>
-
+        <b-link :to="{ name: 'media-downloads' }" class="btn btn-primary btn-fab" v-if="isConfigured">
+            <i class="material-icons">file_download</i>
+        </b-link>
         <b-tabs justified v-if="isConfigured" v-on:input="selectMediaTab">
             <b-tab active>
                 <template v-slot:title>
@@ -21,13 +23,19 @@
                                     <b-img v-else blank blank-color="#ccc" width="64" heigth="94" alt="placeholder"></b-img>
                                 </template>
                                 <h5 class="mt-0 mb-0">{{ movie.title }}</h5>
-                                <div class="mb-1" style="line-height: 1;"><small>Duration: {{ movie.duration | millistohuman }}</small></div>
-                                <p class="mb-0">{{ movie.summary | strlimit(100) }}</p>
+                                <div class="mt-0 mb-0 text-secondary" style="line-height: 1;"><small>Duration: {{ movie.duration | millistohuman }}</small></div>
+                                <p class="mt-2 mb-0">{{ movie.summary | strlimit(100) }}</p>
+                                <p v-if="movie.subtitle !== false" class="mt-1 mb-0">
+                                    <small>
+                                        <span class="text-info" v-if="movie.subtitle !== null">Subtitle available for {{ movie.subtitle }}</span>
+                                        <span class="text-warning" v-else>Subtitle not available</span>
+                                    </small>
+                                </p>
                             </b-media>
                         </b-card>
                     </template>
                     <div v-else style="margin-top: 100px;text-align: center;">
-                        <b-link :to="{ name: 'media-downloads' }" class="btn btn-primary"><i class="material-icons">file_download</i> Downloads</b-link>
+                        No items availables, you can <b-link :to="{ name: 'media-downloads' }">download here</b-link>
                     </div>
                 </div>
             </b-tab>
@@ -45,13 +53,41 @@
                                     <b-img v-if="show.thumb" :src="show.thumb" width="64" heigth="94" alt="placeholder"></b-img>
                                     <b-img v-else blank blank-color="#ccc" width="64" heigth="94" alt="placeholder"></b-img>
                                 </template>
-                                <h5 class="mt-0">{{ show.title }}</h5>
-                                <p class="mb-0">{{ show.summary | strlimit(100) }}</p>
+                                <h5 class="mt-0 mb-0">{{ show.title }}</h5>
+                                <p class="mt-2 mb-2">{{ show.summary | strlimit(100) }}</p>
+                                <hr class="mt-2 mb-2">
+                                <p>
+                                    <ul style="padding-inline-start: 1rem;">
+                                        <li class="mt-1 mb-1" style="line-height: 1;"
+                                            v-for="season of show.seasons"
+                                            :key="season.key">
+                                            <div @click="toggleSeasonDetailVisible(show.key, season.key)">
+                                                {{ season.title }}
+                                                <small style="font-size: 65%;float: right;" class="badge badge-primary badge-pill">
+                                                    {{ season.episodeCount }} episodes
+                                                </small>
+                                            </div>
+                                            <template v-if="isSeasonDetailVisible(show.key, season.key)">
+                                                <ul style="padding: 5px 0 5px 1rem;" v-if="season.episodes">
+                                                    <li v-for="episode of season.episodes" :key="episode.key" style="padding: 5px 0;">
+                                                        {{ episode.identifier }} - {{ episode.title }}
+                                                    </li>
+                                                </ul>
+                                                <div v-else-if="season.episodes === false">
+                                                    Loading <b-spinner small></b-spinner>
+                                                </div>
+                                                <div v-else>
+                                                    No episodes found
+                                                </div>
+                                            </template>
+                                        </li>
+                                    </ul>
+                                </p>
                             </b-media>
                         </b-card>
                     </template>
                     <div v-else style="margin-top: 100px;text-align: center;">
-                        <b-link :to="{ name: 'media-downloads' }" class="btn btn-primary"><i class="material-icons">file_download</i> Downloads</b-link>
+                        No items availables, you can <b-link :to="{ name: 'media-downloads' }">download here</b-link>
                     </div>
                 </div>
             </b-tab>
@@ -108,6 +144,7 @@ export default {
         return {
             qrCodeSrc: null,
             qrCodeFor: null,
+            mediaVisibleSeasons: [],
         };
     },
     computed: {
@@ -167,6 +204,19 @@ export default {
 
             if (!this.$store.state.media.list[mediaType]) {
                 this.waitLoadingFor(this.$store.dispatch(ACTIONS.FETCH_MEDIA_LIST, { mediaType }));
+            }
+        },
+        isSeasonDetailVisible(showKey, seasonKey) {
+            return this.mediaVisibleSeasons.indexOf(`${showKey}>${seasonKey}`) !== -1;
+        },
+        toggleSeasonDetailVisible(showKey, seasonKey) {
+            const key = `${showKey}>${seasonKey}`;
+
+            if (!this.isSeasonDetailVisible(showKey, seasonKey)) {
+                this.$store.dispatch(ACTIONS.FETCH_SHOW_SEASON_DETAIL, { showKey, seasonKey });
+                this.mediaVisibleSeasons.push(key);
+            } else {
+                this.mediaVisibleSeasons.splice(this.mediaVisibleSeasons.indexOf(key), 1);
             }
         },
     },

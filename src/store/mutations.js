@@ -56,4 +56,23 @@ export default {
             Vue.set(state.media.list, mediaType, list);
         }
     },
+    [MUTATIONS.SET_SHOW_SEASON_DETAIL]: (state, { showKey, seasonKey, episodes }) => {
+        if (!state.media.list.shows) {
+            return;
+        }
+
+        const showIdx = state.media.list.shows.findIndex(({ key }) => key === showKey);
+
+        if (showIdx === -1) {
+            return;
+        }
+
+        const seasonIndex = state.media.list.shows[showIdx].seasons.findIndex(({ key }) => key === seasonKey);
+
+        if (seasonIndex === -1) {
+            return;
+        }
+
+        Vue.set(state.media.list.shows[showIdx].seasons[seasonIndex], 'episodes', episodes);
+    },
 };
