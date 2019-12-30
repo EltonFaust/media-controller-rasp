@@ -13,7 +13,7 @@ const getEntity = (...types) => {
 
     const results = [];
 
-    for (const type of types) {
+    types.forEach((type) => {
         if (typeof settings[type] === 'undefined') {
             results.push(new Promise((resolve) => {
                 db.get('SELECT * FROM setting WHERE type = ?', type).then((setting) => {
@@ -24,7 +24,7 @@ const getEntity = (...types) => {
         } else {
             results.push(Promise.resolve(settings[type]));
         }
-    }
+    });
 
     if (types.length === 1) {
         return results[0];
@@ -33,17 +33,15 @@ const getEntity = (...types) => {
     return Promise.all(results);
 };
 
-const get = (...types) => {
-    return new Promise((resolve) => {
-        getEntity(...types).then((results) => {
-            if (!Array.isArray(results)) {
-                return resolve(typeof results !== 'undefined' ? results.value : undefined);
-            }
+const get = (...types) => new Promise((resolve) => {
+    getEntity(...types).then((results) => {
+        if (!Array.isArray(results)) {
+            return resolve(typeof results !== 'undefined' ? results.value : undefined);
+        }
 
-            resolve(results.map(result => typeof result !== 'undefined' ? result.value : undefined));
-        });
+        return resolve(results.map((result) => (typeof result !== 'undefined' ? result.value : undefined)));
     });
-};
+});
 
 const set = (type, value) => {
     if (!db) {
@@ -75,14 +73,12 @@ const set = (type, value) => {
             }).then(() => {
                 delete settings[type];
                 get(type).then(resolve);
-            })
+            });
         });
     });
 };
 
-const rm = (type) => {
-    return set(type, null);
-};
+const rm = (type) => set(type, null);
 
 const keys = {
     HOME_MIN_LINES: 1,
@@ -95,7 +91,7 @@ const keys = {
     // OpenSubtitles
     OS_USERNAME: 7,
     OS_PASSWORD: 8,
-}
+};
 
 
 module.exports = {

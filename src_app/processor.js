@@ -10,13 +10,6 @@ let db;
 
 const mediaListener = require('./listeners/media');
 
-async function prepare() {
-    db = await sqlite.open(path.resolve(__dirname, '..', 'data', 'db.sqlite'), { Promise });
-    await sqlite.migrate();
-
-    settingsService.use(db);
-}
-
 function listen() {
     ipcMain.on('fetch-settings', (event) => {
         new Promise((resolve, reject) => {
@@ -35,17 +28,11 @@ function listen() {
     });
 
     ipcMain.on('note-rename', (event, arg) => {
-        new Promise((resolve, reject) => {
-            db.run(
-                'UPDATE note SET title = ? WHERE id = ?',
-                arg.title,
-                arg.id,
-            ).then(() => {
-                resolve();
-            }).catch(reject);
-        }).then(() => {
-            event.reply('note-rename-reply');
-        }).catch(console.error);
+        db.run(
+            'UPDATE note SET title = ? WHERE id = ?',
+            arg.title,
+            arg.id,
+        ).then(() => event.reply('note-rename-reply')).catch(console.error);
     });
 
     ipcMain.on('note-get', (event, id) => {
@@ -124,8 +111,8 @@ function listen() {
                     'INSERT INTO note(title, path, created, updated) VALUES(?, ?, ?, ?)',
                     `Copy of ${note.title}`, filePath, updated, updated,
                 ).then((stmt) => {
-                    db.get('SELECT * FROM note WHERE id = ?', stmt.lastID).then((note) => {
-                        resolve(note);
+                    db.get('SELECT * FROM note WHERE id = ?', stmt.lastID).then((newNote) => {
+                        resolve(newNote);
                     }).catch(reject);
                 }).catch(reject);
             }).catch(reject);
@@ -179,7 +166,13 @@ function listen() {
     // });
 }
 
+(async function prepare() {
+    db = await sqlite.open(path.resolve(__dirname, '..', 'data', 'db.sqlite'), { Promise });
+    await sqlite.migrate();
+
+    settingsService.use(db);
+}());
+
 module.exports = {
-    prepare,
     listen,
 };

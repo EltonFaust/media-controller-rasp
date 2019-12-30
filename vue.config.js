@@ -4,10 +4,10 @@ module.exports = {
     css: {
         loaderOptions: {
             sass: {
-            data: `
+                prependData: `
                 @import "@/scss/_base.scss";
                 $production: ${process.env.NODE_ENV === 'production' ? 'true' : 'false'};
-                `
+                `,
             },
         },
     },

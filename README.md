@@ -7,7 +7,7 @@ curl -sL https://raw.githubusercontent.com/EltonFaust/media-controller-rasp/mast
 
 ## Project setup local
 ```
-npm install
+npm ci
 ```
 ---
 ## Production
