@@ -39,6 +39,8 @@
 <style lang="scss">
 // $modal-header-padding: 10px;
 // $modal-inner-padding: 10px;
+$modal-header-padding: .8rem;
+$modal-inner-padding: .625rem;
 
 @import '~bootstrap/scss/bootstrap.scss';
 @import '~bootstrap-vue/src/index.scss';
@@ -110,6 +112,10 @@ a {
     text-align: center;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5), 3px 3px 3px rgba(0, 0, 0, 0.25);
     cursor: default;
+}
+.modal .modal-title {
+    font-size: 1rem;
+    // line-height: 1;
 }
 </style>
 

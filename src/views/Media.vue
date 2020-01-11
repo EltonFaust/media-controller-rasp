@@ -69,7 +69,7 @@
                                             </div>
                                             <template v-if="isSeasonDetailVisible(show.key, season.key)">
                                                 <ul style="padding: 5px 0 5px 1rem;" v-if="season.episodes">
-                                                    <li v-for="episode of season.episodes" :key="episode.key" style="padding: 5px 0;">
+                                                    <li v-for="episode of season.episodes" :key="episode.key" @click="viewEpisodeInfo(episode)" style="padding: 5px 0;">
                                                         {{ episode.identifier }} - {{ episode.title }}
                                                     </li>
                                                 </ul>
@@ -118,6 +118,31 @@
                 </template>
             </b-container>
         </center-content>
+
+        <b-modal id="modal-episode-info" scrollable ok-only ok-title="Close">
+            <template v-slot:modal-title>
+                Episode info <b>[{{ visibleEpisode ? `${visibleEpisode.identifier}` : '' }}]</b>
+            </template>
+            <p class="my-2">
+                <template v-if="visibleEpisode">
+                    <b-media>
+                        <template v-slot:aside>
+                            <b-img v-if="visibleEpisode.thumb" :src="visibleEpisode.thumb" width="120" heigth="68" alt="placeholder"></b-img>
+                            <b-img v-else blank blank-color="#ccc" width="120" heigth="68" alt="placeholder"></b-img>
+                        </template>
+                        <h5 class="mt-0 mb-0">{{ visibleEpisode.title }}</h5>
+                        <div class="mt-0 mb-0 text-secondary" style="line-height: 1;"><small>Duration: {{ visibleEpisode.duration | millistohuman }}</small></div>
+                        <p class="mt-2 mb-0">{{ visibleEpisode.summary }}</p>
+                        <p v-if="visibleEpisode.subtitle !== false" class="mt-1 mb-0">
+                            <small>
+                                <span class="text-info" v-if="visibleEpisode.subtitle !== null">Subtitle available for {{ visibleEpisode.subtitle }}</span>
+                                <span class="text-warning" v-else>Subtitle not available</span>
+                            </small>
+                        </p>
+                    </b-media>
+                </template>
+            </p>
+        </b-modal>
     </div>
 </template>
 
@@ -145,6 +170,7 @@ export default {
             qrCodeSrc: null,
             qrCodeFor: null,
             mediaVisibleSeasons: [],
+            visibleEpisode: null,
         };
     },
     computed: {
@@ -218,6 +244,10 @@ export default {
             } else {
                 this.mediaVisibleSeasons.splice(this.mediaVisibleSeasons.indexOf(key), 1);
             }
+        },
+        viewEpisodeInfo(episode) {
+            this.visibleEpisode = episode;
+            this.$bvModal.show('modal-episode-info');
         },
     },
     mounted() {

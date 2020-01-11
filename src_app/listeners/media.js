@@ -11,10 +11,9 @@ const PlexAPI = require('plex-api');
 const OpenSubtitlesAPI = require('opensubtitles-api');
 
 const settingsService = require('../services/settings');
+const projectInfo = require('../../package.json');
 
 const SETTINGS = settingsService.keys;
-
-const projectInfo = require('../../package.json');
 
 const projectName = projectInfo.name.split('-').map((v) => `${v.charAt(0).toUpperCase()}${v.slice(1)}`).join('');
 const projectVersion = projectInfo.version;
@@ -31,6 +30,7 @@ let openSubtitlesClient;
 let downloadSubForLocale = 'none';
 let mediaDirs;
 let waitConfigCallback;
+
 
 const resolveViewFile = (...view) => path.resolve(__dirname, '..', 'views', ...view);
 
@@ -432,6 +432,7 @@ const serverOpen = () => new Promise((listenerResolve) => {
             });
         });
 
+        // Torrent
         expressServer.get('/add-torrent', (req, res) => res.send('Hello World!'));
 
         expressServer.post('/add-torrent', (req, res) => res.send('Hello World!'));

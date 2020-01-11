@@ -30,7 +30,7 @@ export function millistohuman(millis) {
             humanTime.push(`${minutes}m`);
         }
 
-        if (seconds > 1 && !years && !days) {
+        if (seconds > 1 && !years && !days && !hours) {
             humanTime.push(`${seconds.toFixed(0)}s`);
         }
 

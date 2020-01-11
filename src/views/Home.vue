@@ -119,8 +119,8 @@ export default {
             actions: [
                 { to: { name: 'note-drawn' }, label: 'Note', icon: 'note_add' },
                 { to: { name: 'notes' }, label: 'Notes', icon: 'notes' },
-                { to: { name: 'cameras' }, label: 'Cameras', icon: 'videocam' },
                 { to: { name: 'media' }, label: 'Media', icon: 'ondemand_video' },
+                // { to: { name: 'cameras' }, label: 'Cameras', icon: 'videocam' },
                 null,
                 null,
                 // { to: { name: 'note-drawn' }, label: 'Note', icon: 'note_add' },

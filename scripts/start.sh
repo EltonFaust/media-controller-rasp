@@ -24,7 +24,7 @@ then
     git pull origin master
 
     if [[ $DIFFFILES == *"package.json"* ]]; then
-        npm i
+        npm ci
     fi
 fi
 
