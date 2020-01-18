@@ -1,158 +1,64 @@
 const path = require('path');
-const fs = require('fs');
 
 const { ipcMain } = require('electron');
 const sqlite = require('sqlite');
-const uuid = require('uuid/v4');
 const settingsService = require('./services/settings');
 
 let db;
 
+const noteListener = require('./listeners/note');
 const mediaListener = require('./listeners/media');
 
 function listen() {
-    ipcMain.on('fetch-settings', (event) => {
-        new Promise((resolve, reject) => {
-            db.all('SELECT * FROM setting').then(resolve).catch(reject);
-        }).then((settings) => {
-            event.reply('fetch-settings-reply', settings);
-        }).catch(console.error);
+    ipcMain.on('fetch-settings', async (event) => {
+        event.reply('fetch-settings-reply', await db.all('SELECT * FROM setting'));
     });
 
-    ipcMain.on('note-list-drawns', (event) => {
-        new Promise((resolve, reject) => {
-            db.all('SELECT * FROM note ORDER BY id DESC').then(resolve).catch(reject);
-        }).then((list) => {
-            event.reply('note-list-drawns-reply', list);
-        }).catch(console.error);
+    ipcMain.on('note-list-drawns', async (event) => {
+        event.reply('note-list-drawns-reply', await noteListener.list());
     });
 
-    ipcMain.on('note-rename', (event, arg) => {
-        db.run(
-            'UPDATE note SET title = ? WHERE id = ?',
-            arg.title,
-            arg.id,
-        ).then(() => event.reply('note-rename-reply')).catch(console.error);
+    ipcMain.on('note-get', async (event, id) => {
+        event.reply('note-get-reply', await noteListener.get(id));
     });
 
-    ipcMain.on('note-get', (event, id) => {
-        new Promise((resolve, reject) => {
-            db.get('SELECT * FROM note WHERE id = ?', id).then(resolve).catch(reject);
-        }).then((note) => {
-            const fileContent = fs.readFileSync(
-                path.resolve('.', 'data', 'note', note.path),
-                { encoding: 'base64' },
-            );
-
-            event.reply(
-                'note-get-reply',
-                {
-                    ...note,
-                    content: `data:image/png;base64,${fileContent}`,
-                },
-            );
-        }).catch(console.error);
+    ipcMain.on('note-drawn-save', async (event, arg) => {
+        event.reply('note-drawn-save-reply', await noteListener.save(arg.id, arg.content));
     });
 
-    ipcMain.on('note-drawn-save', (event, arg) => {
-        new Promise((resolve, reject) => {
-            const updated = new Date().toISOString();
-
-            if (!arg.id) {
-                const filePath = `${uuid()}.png`;
-
-                fs.writeFileSync(
-                    path.resolve('.', 'data', 'note', filePath),
-                    arg.content.replace(/.*;base64,/, ''),
-                    { encoding: 'base64' },
-                );
-
-                db.run(
-                    'INSERT INTO note(title, path, created, updated) VALUES(?, ?, ?, ?)',
-                    updated.substr(0, 19).replace(/T/, ' '), filePath, updated, updated,
-                ).then((stmt) => {
-                    resolve(stmt.lastID);
-                }).catch(reject);
-            } else {
-                db.get('SELECT path FROM note WHERE id = ?', arg.id).then((note) => {
-                    fs.writeFileSync(
-                        path.resolve('.', 'data', 'note', note.path),
-                        arg.content.replace(/.*;base64,/, ''),
-                        { encoding: 'base64' },
-                    );
-
-                    db.run(
-                        'UPDATE note SET updated = ? WHERE id = ?',
-                        updated,
-                        arg.id,
-                    ).then(() => {
-                        resolve(arg.id);
-                    }).catch(reject);
-                }).catch(reject);
-            }
-        }).then((id) => {
-            event.reply('note-drawn-save-reply', id);
-        }).catch(console.error);
+    ipcMain.on('note-rename', async (event, arg) => {
+        await noteListener.rename(arg.id, arg.title);
+        event.reply('note-rename-reply');
     });
 
-    ipcMain.on('note-drawn-duplicate', (event, id) => {
-        new Promise((resolve, reject) => {
-            const updated = new Date().toISOString();
-
-            db.get('SELECT * FROM note WHERE id = ?', id).then((note) => {
-                const filePath = `${uuid()}.png`;
-
-                fs.copyFileSync(
-                    path.resolve('.', 'data', 'note', note.path),
-                    path.resolve('.', 'data', 'note', filePath),
-                );
-
-                db.run(
-                    'INSERT INTO note(title, path, created, updated) VALUES(?, ?, ?, ?)',
-                    `Copy of ${note.title}`, filePath, updated, updated,
-                ).then((stmt) => {
-                    db.get('SELECT * FROM note WHERE id = ?', stmt.lastID).then((newNote) => {
-                        resolve(newNote);
-                    }).catch(reject);
-                }).catch(reject);
-            }).catch(reject);
-        }).then((note) => {
-            event.reply('note-drawn-duplicate-reply', note);
-        }).catch(console.error);
+    ipcMain.on('note-drawn-duplicate', async (event, id) => {
+        event.reply('note-drawn-duplicate-reply', await noteListener.duplicate(id));
     });
 
-    ipcMain.on('note-remove', (event, id) => {
-        new Promise((resolve, reject) => {
-            db.get('SELECT path FROM note WHERE id = ?', id).then((note) => {
-                fs.unlinkSync(path.resolve('.', 'data', 'note', note.path));
-
-                db.run('DELETE FROM note WHERE id = ?', id).then(() => {
-                    resolve();
-                }).catch(reject);
-            }).catch(reject);
-        }).then(() => {
-            event.reply('note-remove-reply');
-        }).catch(console.error);
+    ipcMain.on('note-remove', async (event, id) => {
+        await noteListener.remove(id);
+        event.reply('note-remove-reply');
     });
 
-    ipcMain.on('media-server-start', (event) => {
-        mediaListener.serverOpen().then(([serverAddressList, isConfigured]) => event.reply('media-server-start-reply', serverAddressList, isConfigured));
+    ipcMain.on('media-server-start', async (event) => {
+        event.reply('media-server-start-reply', ...await mediaListener.serverOpen());
     });
 
-    ipcMain.on('media-server-stop', (event) => {
-        mediaListener.serverClose().then(() => event.reply('media-server-stop-reply'));
+    ipcMain.on('media-server-stop', async (event) => {
+        await mediaListener.serverClose();
+        event.reply('media-server-stop-reply');
     });
 
     ipcMain.on('media-wait-configure', (event) => {
         mediaListener.waitConfigure(() => event.reply('media-wait-configure-reply'));
     });
 
-    ipcMain.on('media-list', (event, type) => {
-        mediaListener.listMedia(type).then((medias) => event.reply('media-list-reply', medias));
+    ipcMain.on('media-list', async (event, type) => {
+        event.reply('media-list-reply', await mediaListener.listMedia(type));
     });
 
-    ipcMain.on('media-detail-show-season', (event, seasonKey) => {
-        mediaListener.detailShowSeason(seasonKey).then((episodes) => event.reply('media-detail-show-season-reply', episodes));
+    ipcMain.on('media-detail-show-season', async (event, seasonKey) => {
+        event.reply('media-detail-show-season-reply', await mediaListener.detailShowSeason(seasonKey));
     });
 
     // ipcMain.on('asynchronous-message', (event, arg) => {
@@ -166,12 +72,13 @@ function listen() {
     // });
 }
 
-(async function prepare() {
+(async () => {
     db = await sqlite.open(path.resolve(__dirname, '..', 'data', 'db.sqlite'), { Promise });
     await sqlite.migrate();
 
     settingsService.use(db);
-}());
+    noteListener.use(db);
+})();
 
 module.exports = {
     listen,

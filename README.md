@@ -1,6 +1,8 @@
-# media-controller-rasp
+# Media controller for Raspberry PI touch
+[![GitHub Actions Workflow](https://github.com/EltonFaust/media-controller-rasp/workflows/Lint%20and%20build/badge.svg)](https://github.com/EltonFaust/media-controller-rasp/actions)
+---
 
-## Project setup RaspberryPI
+## Project setup Raspberry PI
 ```
 curl -sL https://raw.githubusercontent.com/EltonFaust/media-controller-rasp/master/scripts/install.sh | sudo -E bash -
 ```

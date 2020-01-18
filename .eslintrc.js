@@ -11,7 +11,7 @@ module.exports = {
         // auto remove console on build
         'no-console': 'off',
         'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-        indent: ['error', 4],
+        indent: ['error', 4, { SwitchCase: 1 }],
         'max-len': 'off',
     },
     parserOptions: {
